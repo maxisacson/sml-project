@@ -74,11 +74,27 @@ The neutrino from the hadronic tau decay only carries a small amount of the ener
 
 \section{The Dataset}
 \subsection{Structure}
+The dataset consist of simulated $pp$ collisions and $H^+\to\tau\nu$ decay. Each event is described by one set of observable variables and one set of unobservable variables.
+
+Observable variables:
+\begin{itemize}
+    \item $E_x^\mathrm{miss}$, $E_y^\mathrm{miss}$ --- The $x$- and $y$-components of the missing energy.
+    \item $P_{\tau_\mathrm{vis.}}$ --- The 4-momentum of the visible (hadronic) part of the $\tau$ decay.
+    \item $P_{b_0}$, $P_{b_1}$, $P_{q_0}$, $P_{q_1}$ --- The 4-momenta of the two $b$-jets and two light jets.
+\end{itemize}
+
+Unobservable variables:
+\begin{itemize}
+    \item $P_{\nu_\tau}$ --- The 4-momentum of the neutrino from the charged Higgs decay.
+    \item $P_{\bar\nu_\tau}$ --- The 4-momentum of the neutrino from the $\tau$ decay.
+\end{itemize}
 
 \subsection{Production}
-
+MG5\_aMC@NLO \cite{Alwall:2014hca} is used for the matrix element computation of $gg / q \bar q \to H^+$ and the event simulation. The events are then passed to PYTHIA8 \cite{Sjöstrand2015159} for showering and hadronization, and the $H^+\to \tau\nu$ decay. Finally, the detector response is simulated using DELPHES \cite{Favereau2014} with an ATLAS-like geometry.
 
 \section{Solution strategy}
 A number of machine learning algorithms will be compared for this regression problem. Specifically we will compare artificial neural networks, Bayesian regression, support vector regression, and the Gaussian process. The algorithms will principally be judged based on the resolution of the reconstructed transverse (perpendicular to the beam axis) component of the missing energy. The ability to reconstruct the component of the missing energy in the longitudinal direction (parallel to the beam axis) will also be investigated.
+
+\bibliography{refs}
 
 \end{document}
