@@ -3,12 +3,10 @@
 \usepackage{siunitx}
 \usepackage{graphicx}
 \usepackage{caption}
-\usepackage{subcaption}
 \usepackage{glossaries}
 \usepackage[english]{babel}
 \usepackage{booktabs}
 \usepackage[linktoc=all,hidelinks]{hyperref}
-\usepackage{cleveref}
 \usepackage{authblk}
 
 % \makeatletter
@@ -41,7 +39,10 @@
 
 
 \section{Background}
-\subsection{Particle physics experiments}
+\subsection{Hadron collider experiments}
+At particle colliders two beams of hadrons\footnote{Hadrons are non-elementary particles consisting quarks, which are elementary, and held together by the strong force, which is mediated by glouns. Examples of hadrons are the proton and the neutron.} are accelerated to relativistic speeds and and collided head-on. The quarks and gluons in the hadrons interact, producing all kinds of elementary and non-elementary particles. Due to mass conservation, the mass of the created particle cannot exceed the combined energy of the collision. Most particles produced in the interaction are highly unstable and quickly decays to more stable ones. The properties of these short-lived particles has to be deduced by their decay products.
+
+General purpose detectors are used to characterize the reaction products. Moving from the collision point outwards, the detectors consists of: a tracker placed inside a magnetic field that measures the track and momentum of charged particles; an electromagnetic calorimeter which measures the energy of photons and electron; a hadronic calorimeter that measured the energy of hadrons, and a muon chamber that detects muons (a heavier cusin to the electron) which are not stopped by the calorimeters. The only particles not detected are the elusive neutrinos, these show up as missing momentum.
 
 \subsection{Charged Higgs}
 % Production and decay
@@ -55,7 +56,7 @@
 
 
 \section{Solution strategy}
-We will perform a 
+A number of machine learning algorithms will be compared for this regression problem. Specifically artificial neural networks, bayesian regression, support vector regression, and gaussian process.
 % Regression
 % Artificial neural network, bayesian regression, support vector machine, gaussian process.
 
