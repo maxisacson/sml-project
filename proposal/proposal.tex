@@ -8,6 +8,7 @@
 \usepackage{booktabs}
 \usepackage[linktoc=all,hidelinks]{hyperref}
 \usepackage{authblk}
+\usepackage{unicode-math}
 
 % \makeatletter
 % \renewcommand\AB@affilsepx{,~ \protect\Affilfont}
@@ -48,12 +49,19 @@ At particle colliders two beams of hadrons\footnote{Hadrons are non-elementary p
 
 General purpose detectors are used to characterize the reaction products. Moving from the collision point outwards, the detectors consists of: a tracker placed inside a magnetic field that measures the track and momentum of charged particles; an electromagnetic calorimeter which measures the energy of photons and electron; a hadronic calorimeter that measured the energy of hadrons, and a muon chamber that detects muons (a heavier cusin to the electron) which are not stopped by the calorimeters. The only particles not detected are the elusive neutrinos, these show up as missing momentum.
 
-\subsection{The Charged Higgs boson}
-% Production and decay
+\subsection{The charged Higgs boson}
+The charged Higgs boson is a hypothesized particle that is present in some extensions to the Standard Model. The charged Higgs boson can be either heavier or lighter than the top quark. Here we consider its heavy form, in which it is produced from two gluons in particle collisions, and in association with a top and a bottom quark. The two main decays of the charged Higgs boson are decays to a top and a bottom quark ($H⁺→tb$), and decays to a tau lepton and a neutrino ($H⁺→τν$). The charged Higgs boson decay into a tau lepton and a neutrino offers a clean signature that is relatively easy to discriminate against background events.
+
+The tau lepton in turn either decays to a light lepton (electron or muon) and two neutrinos, or to hadrons (charged and neutral pions) and one neutrino. Here we consider hadronically decaying tau leptons.
+
+The components of the event final state (in regard to the production and decay mode), which also form the base of our set of input variables, are the top and bottom quark from the associated production, the visible component of the hadronically decaying tau lepton, and the missing energy.
+
 \subsection{Missing energy}
 The neutrinos in the charged Higgs boson decays only interact with matter via the weak interaction. Since the this interaction is (as its name suggests) weak, neutrinos will travel through the detector without affecting the matter that constitues it. The neutrinos can therefore only be detected in form of the absence of interaction. This absence is called missing energy.
 
 Furthermore, since the particle beam consists of composite objects (protons) as apart from point-like objects (e.g. electrons), it is not possible to know how large portion of the beam particles' momentum go into the production of the charged Higgs boson. Therefore we can only make use of the energy and momentum conservation constraints in the directions transverse to the beam (x and y). For detected particles, the momentum can be reconstructed in all three spatial directions, while for the neutrinos this information is completely unknown. In the end we are left with two quantities: \exmiss\ and \eymiss.
+
+The neutrino from the hadronic tau decay only carries a small amount of the energy of the tau lepton. A good approximation is to disregard this neutrino, and assume that all missing energy comes from the neutrino originating from the charged Higgs boson decay. This simplifies the event topology, and thus the statistical model, by removing one unknown variable.
 
 \section{The Dataset}
 \subsection{Structure}
