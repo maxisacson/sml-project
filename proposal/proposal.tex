@@ -7,29 +7,41 @@
 \usepackage[english]{babel}
 \usepackage{booktabs}
 \usepackage[linktoc=all,hidelinks]{hyperref}
-\usepackage{authblk}
+\usepackage{fontspec}
+% \usepackage{authblk}
 \usepackage{unicode-math}
 
 % \makeatletter
 % \renewcommand\AB@affilsepx{,~ \protect\Affilfont}
 % \makeatother
 
+\setkomafont{author}{\sffamily}
+
 \newcommand{\nump}[2]{\num[round-mode=places,round-precision=#2]{#1}}
 \DeclareGraphicsExtensions{.pdf,.eps}
 \bibliographystyle{unsrt}
 
-\title{Proposal of Project}
-\subtitle{A study of machine learning algorithms for reconstruction of missing mass in particle physics experiments.}
+\title{Project Proposal}
+\subtitle{A study of machine learning algorithms for reconstruction of missing energy in particle physics experiments.}
 % \subject{Statistical Machine Learning}
 
-\author[1]{Max Isacsson}
-\author[2]{Mikael M\aa rtensson}
-\author[3]{Camila Rangel Smith}
-\author[4]{Henrik \"{O}hman}
-\affil[1]{\small\url{max.isacsson@physics.uu.se}}
-\affil[2]{\url{mikael.martensson@physics.uu.se}}
-\affil[3]{\url{camila.rangel@physics.uu.se}}
-\affil[4]{\url{ohman@cern.ch}}
+\author{
+  Max Isacsson, \url{max.isacsson@physics.uu.se}
+  \and
+  Mikael M\aa rtensson, \url{mikael.martensson@physics.uu.se}
+  \and
+  Camila Rangel Smith, \url{camila.rangel@physics.uu.se}
+  \and
+  Henrik Öhman, \url{ohman@cern.ch}
+}
+% \author[1]{Max Isacsson}
+% \author[2]{Mikael M\aa rtensson}
+% \author[3]{Camila Rangel Smith}
+% \author[4]{Henrik \"{O}hman}
+% \affil[1]{\small\url{max.isacsson@physics.uu.se}}
+% \affil[2]{\url{mikael.martensson@physics.uu.se}}
+% \affil[3]{\url{camila.rangel@physics.uu.se}}
+% \affil[4]{\url{ohman@cern.ch}}
 
 \newacronym{ANN}{ANN}{Artificial Neural Network}
 
@@ -40,14 +52,11 @@
 \begin{document}
 \maketitle
 
-\section{Problem statement}
-
-
 \section{Background}
 \subsection{Hadron collider experiments}
 At particle colliders two beams of hadrons\footnote{Hadrons are non-elementary particles consisting quarks, which are elementary, and held together by the strong force, which is mediated by glouns. Examples of hadrons are the proton and the neutron.} are accelerated to relativistic speeds and and collided head-on. The quarks and gluons in the hadrons interact, producing all kinds of elementary and non-elementary particles. Due to mass conservation, the mass of the created particle cannot exceed the combined energy of the collision. Most particles produced in the interaction are highly unstable and quickly decays to more stable ones. The properties of these short-lived particles has to be deduced by their decay products.
 
-General purpose detectors are used to characterize the reaction products. Moving from the collision point outwards, the detectors consists of: a tracker placed inside a magnetic field that measures the track and momentum of charged particles; an electromagnetic calorimeter which measures the energy of photons and electron; a hadronic calorimeter that measured the energy of hadrons, and a muon chamber that detects muons (a heavier cusin to the electron) which are not stopped by the calorimeters. The only particles not detected are the elusive neutrinos, these show up as missing momentum.
+General purpose detectors are used to characterize the reaction products. Moving from the collision point outwards, the detectors consists of: a tracker placed inside a magnetic field that measures the track and momentum of charged particles; an electromagnetic calorimeter which measures the energy of photons and electron; a hadronic calorimeter that measured the energy of hadrons, and a muon chamber that detects muons (a heavier cousin to the electron) which are not stopped by the calorimeters. The only particles not detected are the elusive neutrinos, these show up as missing momentum.
 
 \subsection{The charged Higgs boson}
 The charged Higgs boson is a hypothesized particle that is present in some extensions to the Standard Model. The charged Higgs boson can be either heavier or lighter than the top quark. Here we consider its heavy form, in which it is produced from two gluons in particle collisions, and in association with a top and a bottom quark. The two main decays of the charged Higgs boson are decays to a top and a bottom quark ($H⁺→tb$), and decays to a tau lepton and a neutrino ($H⁺→τν$). The charged Higgs boson decay into a tau lepton and a neutrino offers a clean signature that is relatively easy to discriminate against background events.
@@ -70,12 +79,6 @@ The neutrino from the hadronic tau decay only carries a small amount of the ener
 
 
 \section{Solution strategy}
-A number of machine learning algorithms will be compared for this regression problem. Specifically artificial neural networks, bayesian regression, support vector regression, and gaussian process.
-% Regression
-% Artificial neural network, bayesian regression, support vector machine, gaussian process.
-
-
-%\newpage
-% \bibliography{ref}
+A number of machine learning algorithms will be compared for this regression problem. Specifically we will compare artificial neural networks, Bayesian regression, support vector regression, and the Gaussian process. The algorithms will principally be judged based on the resolution of the reconstructed transverse (perpendicular to the beam axis) component of the missing energy. The ability to reconstruct the component of the missing energy in the longitudinal direction (parallel to the beam axis) will also be investigated.
 
 \end{document}
