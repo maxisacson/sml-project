@@ -78,7 +78,7 @@ The dataset consists of simulated $pp$ collision events, in which a charged Higg
 
 Observable variables:
 \begin{itemize}
-    \item $E_x^\mathrm{miss}$, $E_y^\mathrm{miss}$ --- The $x$- and $y$-components of the missing energy.
+    \item \exmiss, \eymiss --- The $x$- and $y$-components of the missing energy.
     \item $P_{\tau_\mathrm{vis.}}$ --- The 4-momentum of the visible (hadronic) part of the $\tau$ decay.
     \item $P_{b_0}$, $P_{b_1}$, $P_{q_0}$, $P_{q_1}$ --- The 4-momenta of the two $b$-jets and two light jets.
 \end{itemize}
@@ -92,8 +92,13 @@ Unobservable variables:
 \subsection{Production}
 MG5\_aMC@NLO \cite{Alwall:2014hca} is used for the matrix element computation of $gg / q \bar q \to H^+$ and the event simulation. The events are then passed to PYTHIA8 \cite{Sjöstrand2015159} for showering and hadronization, and the $H^+\to \tau\nu$ decay. Finally, the detector response is simulated using DELPHES \cite{Favereau2014} with an ATLAS-like geometry.
 
+\subsection{Estimated and true quantities}
+The true quantities for both the observable and the unobservable variables are available as output from the event simulation. The estimated values for the observable variables are reconstructed from the output from the detector response simulation.
+
 \section{Solution strategy}
 A number of machine learning algorithms will be compared for this regression problem. Specifically we will compare artificial neural networks, Bayesian regression, support vector regression, and the Gaussian process. The algorithms will principally be judged based on the resolution of the reconstructed transverse (perpendicular to the beam axis) component of the missing energy. The ability to reconstruct the component of the missing energy in the longitudinal direction (parallel to the beam axis) will also be investigated.
+
+The estimated (reconstructed) observable quantities are used as inputs to the training, while the true quantities for the \exmiss, \eymiss, $P_{\nu_\tau}$, and $P_{\bar\nu_\tau}$ are used as target values.
 
 \bibliography{refs}
 
