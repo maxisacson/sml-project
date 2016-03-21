@@ -109,20 +109,14 @@ int delphes2csv(const char* input) {
             for (int ijet = 0; ijet < b_DJet->GetEntries(); ++ijet) {
                 Jet* jet = (Jet*)b_DJet->At(ijet);
                 if (jet->BTag) {
-                    if (nbjet < maxbjet) {
-                        bjets.push_back(jet);
-                        ++nbjet;
-                    }
+                    bjets.push_back(jet);
+                    if (nbjet < maxbjet) ++nbjet;
                 } else if (jet->TauTag) {
-                    if (ntau < maxtau) {
-                        taus.push_back(jet);
-                        ++ntau;
-                    }
+                    taus.push_back(jet);
+                    if (ntau < maxtau) ++ntau;
                 } else {
-                    if (njet < maxjet) {
-                        jets.push_back(jet);
-                        ++njet;
-                    }
+                    jets.push_back(jet);
+                    if (njet < maxjet) ++njet;
                 }
             }
 
