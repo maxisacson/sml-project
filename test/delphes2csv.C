@@ -12,6 +12,7 @@ R__LOAD_LIBRARY(libDelphes)
 #include <cstdio>
 
 bool isFinalState(GenParticle* part, TClonesArray* particles);
+GenParticle* getFinalState(GenParticle* part, TClonesArray* particles);
 GenParticle* getChargedHiggs(TClonesArray* particles);
 GenParticle* getChargedHiggsNeutrino(GenParticle* part, TClonesArray* particles);
 GenParticle* getChargedHiggsTau(GenParticle* part, TClonesArray* particles);
@@ -95,6 +96,7 @@ int delphes2csv(const char* input) {
         GenParticle* hplus = getChargedHiggs(b_DParticle);
         GenParticle* nuH = getChargedHiggsNeutrino(hplus, b_DParticle);
         GenParticle* Tau = getChargedHiggsTau(hplus, b_DParticle);
+        Tau = getFinalState(Tau, b_DParticle);
         GenParticle* nuTau = getChargedHiggsTauNeutrino(Tau, b_DParticle);
         if (hplus && nuH && Tau && nuTau) {
 
@@ -201,6 +203,21 @@ GenParticle* getChargedHiggs(TClonesArray* particles) {
     return 0;
 }
 
+
+GenParticle* getFinalState(GenParticle* part, TClonesArray* particles) {
+    GenParticle* p = part;
+    while(true) {
+        int* child = getDaughtersPID(p, particles);
+        if (child[0] == p->PID)
+            p = (GenParticle*)particles->At(p->D1);
+        else if (child[1] == p->PID)
+            p = (GenParticle*)particles->At(p->D2);
+        else
+            break;
+    }       
+    return p;
+}
+
 GenParticle* getChargedHiggsNeutrino(GenParticle* part, TClonesArray* particles) {
     int* child = getDaughtersPID(part, particles);
     if ( abs(child[0]) == 16 )
@@ -221,9 +238,9 @@ GenParticle* getChargedHiggsTau(GenParticle* part, TClonesArray* particles) {
 
 GenParticle* getChargedHiggsTauNeutrino(GenParticle* part, TClonesArray* particles) {
     int* child = getDaughtersPID(part, particles);
-    if ( abs(child[0]) == 15 )
+    if ( abs(child[0]) == 16 )
         return (GenParticle*)particles->At(part->D1);
-    if ( abs(child[1]) == 15 )
+    if ( abs(child[1]) == 16 )
         return (GenParticle*)particles->At(part->D2);
     return 0;
 }
