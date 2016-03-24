@@ -49,8 +49,8 @@ predictors_final = ["et(met)", " phi(met)","pt(reco tau1)", "eta(reco tau1)", "p
 
 
 # Initialize our algorithm class
-alg = LinearRegression()
-#alg = linear_model.BayesianRidge()# Generate cross validation folds for the  dataset.  It return the row indices corresponding to train and test.
+#alg = LinearRegression()
+alg = linear_model.Ridge(alpha = 10)# Generate cross validation folds for the  dataset.  It return the row indices corresponding to train and test.
 # We set random_state to ensure we get the same splits every time we run this.
 kf = KFold(selected_sample.shape[0], n_folds=3, random_state=1)
 
@@ -83,6 +83,9 @@ result_default=[]
 mT_predict=[]
 mT_default=[]
 
+pt_predict=[]
+pt_true=[]
+
 count_fail =0
 for i in range(len(target)):
     porcentage_predict= (target[i] - pred[i])/target[i]*100
@@ -90,6 +93,10 @@ for i in range(len(target)):
 
     result_predict.append(porcentage_predict)
     result_default.append(porcentage_met)
+
+    pt_predict.append(pred[i])
+    pt_true.append(target[i])
+
 
     if taupt[i]>0 and pred[i]>0:
         mt_new=math.sqrt(2*pred[i]*taupt[i]*(1-math.cos(tauphi[i]-met_phi[i])))
@@ -108,7 +115,10 @@ defaul_list = np.array(list(result_default))
                                         
 mt_prediction_list = np.array(list(mT_predict))
 mt_defaul_list = np.array(list(mT_default))
-                                        
+
+pt_prediction_list = np.array(list(pt_predict))
+pt_true_list = np.array(list(pt_true))
+
 
 print("pT resolution")
 print(stats.describe(prediction_list))
@@ -122,13 +132,32 @@ plt.ylabel("Frequency")
 plt.axis([-200,200,0,600])
 plt.show()
 
-plt.hist(defaul_list, bins=2000)
+plt.hist(defaul_list, bins)
 plt.title("default result")
 plt.xlabel("resolution (%)")
 plt.ylabel("Frequency")
 plt.axis([-200,200,0,600])
 plt.show()
-                                        
+
+print("pT ")
+print(stats.describe(pt_prediction_list))
+print(stats.describe(pt_true_list))
+
+bins=200
+plt.hist(pt_prediction_list, bins)
+plt.title("Preddicted result")
+plt.xlabel("pT [GeV]")
+plt.ylabel("Frequency")
+plt.axis([0,300,0,500])
+plt.show()
+
+plt.hist(pt_true_list, bins)
+plt.title("default result")
+plt.xlabel("pT [GeV]")
+plt.ylabel("Frequency")
+plt.axis([0,300,0,500])
+plt.show()
+
 print("mT distribution")
 print(stats.describe(mt_prediction_list))
 print(stats.describe(mt_defaul_list))
@@ -143,7 +172,7 @@ plt.show()
 
 plt.hist(mt_defaul_list, bins)
 plt.title("default result")
-plt.xlabel("resolution (%)")
+plt.xlabel("mT [GeV]")
 plt.ylabel("Frequency")
 plt.axis([0,400,0,400])
 plt.show()
