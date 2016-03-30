@@ -52,9 +52,9 @@ int delphes2csv(const char* input) {
     fprintf(stream, "# eventNumber,");
     fprintf(stream, "pt(mc h+),eta(mc h+),phi(mc h+),e(mc h+),");
     fprintf(stream, "pt(mc tau),eta(mc tau),phi(mc tau),e(mc tau),");
-    fprintf(stream, "pt(mc nuH),eta(mc nuH),phi(mc nuH), e(mc nuH),");
+    fprintf(stream, "pt(mc nuH),eta(mc nuH),phi(mc nuH),e(mc nuH),");
     fprintf(stream, "pt(mc nuTau),eta(mc nuTau),phi(eta nuTau),e(mc nuTau),");
-    fprintf(stream, "et(met), phi(met),");
+    fprintf(stream, "et(met),phi(met),");
     fprintf(stream, "ntau,");
     fprintf(stream, "nbjet,");
     fprintf(stream, "njet,");
@@ -121,6 +121,10 @@ int delphes2csv(const char* input) {
                     if (njet < maxjet) ++njet;
                 }
             }
+
+            if (ntau < 1) continue;
+            if (nbjet < 1) continue;
+            if (njet < 2) continue;
 
             std::sort(bjets.begin(), bjets.end(), [](Jet* j1, Jet* j2){return j1->PT > j2->PT;});
             std::sort(jets.begin(),  jets.end(),  [](Jet* j1, Jet* j2){return j1->PT > j2->PT;});
