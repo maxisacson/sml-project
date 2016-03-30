@@ -17,7 +17,9 @@ from sklearn import gaussian_process
 
 
 def main(argv):
-    hidden = [[20,5],[35,10],[50,20]]
+    # hidden = [[20,5]]
+    # hidden = [[50,20],[50,40],[100,10],[100,80],[20,100],[10,20]]
+    hidden = [[25,20]] # This is a go0d one!
     
     multipool = Pool(processes=3)
     result = multipool.map(train_net, hidden)
@@ -61,7 +63,7 @@ def main(argv):
     figmet.savefig("met.pdf")
     plt.show()
     
-def train_net(nn_layers, max_train_epochs=200):
+def train_net(nn_layers, max_train_epochs=500):
 
     nhidden = 100
     # train_var = "mass_truth"
@@ -147,32 +149,32 @@ def train_net(nn_layers, max_train_epochs=200):
     model.add( Activation("linear") )
     model.compile(loss='mse', optimizer='sgd')
     model.fit( train_predictors.as_matrix(), train_target.as_matrix(),
-               nb_epoch=max_train_epochs, batch_size=32 )
+               nb_epoch=max_train_epochs, batch_size=32, verbose=0 )
 
     objective_score = model.evaluate( test_predictors.as_matrix(),
                                       test_target.as_matrix(),
                                       batch_size=32 )
-    print(objective_score)
-    
+    # We can now make predictions on the test fold    
     predictions = model.predict_proba(test_predictors.as_matrix(),
                                       batch_size=32)
     
-    # # We can now make predictions on the test fold
-    # for x in test[predictors_final].as_matrix():
-    #     predictions.append(net.activate(x))
 
     # re-normalize to physical data
     selected_sample = datasetstd*(selected_sample - 0.5) + datasetmean
     predictions = ( datasetstd[train_var]*(predictions - 0.5)
                     + datasetmean[train_var] )
-    target = list( datasetstd[train_var]*(test[train_var] - 0.5)
-                   + datasetmean[train_var] )
-
-    pred=list(predictions)
-    met=list(selected_sample["et(met)"])
-    met_phi=list(selected_sample[" phi(met)"])
-    taupt=list(selected_sample["pt(reco tau1)"])
-    tauphi=list(selected_sample["phi(reco tau1)"])
+    target  = list( datasetstd[train_var]*(test[train_var] - 0.5)
+                    + datasetmean[train_var] )
+    pred    = list(predictions)
+    met     = list( datasetstd["et(met)"]*( test["et(met)"] - 0.5 )
+                    + datasetmean["et(met)"] )
+    met_phi = list( datasetstd[" phi(met)"]*( test[" phi(met)"] - 0.5 )
+                    + datasetmean[" phi(met)"] )
+    taupt   = list( datasetstd["pt(reco tau1)"]*( test["pt(reco tau1)"] - 0.5 )
+                   + datasetmean["pt(reco tau1)"] )
+    tauphi  = list( datasetstd["phi(reco tau1)"]*( test["phi(reco tau1)"]
+                                                   - 0.5 )
+                    + datasetmean["phi(reco tau1)"] )
 
 
     # I want to check the resolution of the prediction wrt the truth value resol
@@ -215,7 +217,8 @@ def train_net(nn_layers, max_train_epochs=200):
              'prediction_list'    : prediction_list,
              'defaul_list'        : defaul_list,
              'mt_prediction_list' : mt_prediction_list,
-             'mt_defaul_list'     : mt_defaul_list }
+             'mt_defaul_list'     : mt_defaul_list,
+             'objective_score'    : objective_score }
 
 if __name__=="__main__":
     main(sys.argv[1:])
