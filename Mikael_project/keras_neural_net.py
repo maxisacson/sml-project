@@ -1,3 +1,6 @@
+from keras.models import Sequential
+from keras.layers.core import Dense, Activation
+
 import sys
 import pandas as pd
 import numpy as np
@@ -12,59 +15,50 @@ from sklearn.cross_validation import train_test_split
 from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn import gaussian_process
 
-from pybrain.datasets import SupervisedDataSet
-from pybrain.structure import SigmoidLayer, LinearLayer
-from pybrain.tools.shortcuts import buildNetwork
-from pybrain.supervised.trainers import BackpropTrainer
-
 
 def main(argv):
-    hidden = [[10,10],[20,20],[30,30]]
+    hidden = [[20,5],[35,10],[50,20]]
     
     multipool = Pool(processes=3)
     result = multipool.map(train_net, hidden)
 
-    for res in result:
-        fig, axres = plt.subplots(2, sharex=True)
-        bins=2000
-        axres[0].hist(res['prediction_list'], 2000)
-        axres[0].set_title("Preddicted result {}".format(res['layer_conf']))
-        # axres[0].set_xlabel("resolution (%)")
-        axres[0].set_ylabel("Frequency")
-        axres[0].axis([-200,200,0,250])
-        axres[0].autoscale(axis='y')
+    figres, axres = plt.subplots( len(result)+1, sharex=True )
+    figmet, axmet = plt.subplots( len(result)+1, sharex=True )
 
-        axres[1].hist(res['defaul_list'], 2000)
-        axres[1].set_title("default result")
-        axres[1].set_xlabel("resolution (%)")
-        axres[1].set_ylabel("Frequency")
-        axres[1].axis([-200,200,0,250])
-        axres[1].autoscale(axis='y')
+    # print(result['prediction_list'])
+    for i in range(len(result)):
+        axres[i].hist(result[i]['prediction_list'], 2000)
+        axres[i].set_title( "Preddicted result {}"
+                            .format(result[i]['layer_conf']) )
+        # axres[i].set_xlabel("resolution (%)")
+        axres[i].set_ylabel("Frequency")
+        axres[i].axis([-200,200,0,250])
+        axres[i].autoscale(axis='y')
 
-        fig.savefig("res_{}class".format(res['layer_conf']))
+        axmet[i].hist(result[i]['mt_prediction_list'], 100)
+        axmet[i].set_title( "Preddicted result {}"
+                            .format(result[i]['layer_conf']) )
+        # axmet[i].set_xlabel("mT [GeV]")
+        axmet[i].set_ylabel("Frequency")
+        axmet[i].axis([0,400,0,50])
+        axmet[i].autoscale(axis='y')
         
-        # print("mT distribution")
-        # print(stats.describe(mt_prediction_list))
-        # print(stats.describe(mt_defaul_list))
-        
-        fig, axmet = plt.subplots(2, sharex=True)
-        bins=100
-        axmet[0].hist(res['mt_prediction_list'], 100)
-        axmet[0].set_title("Preddicted result {}".format(res['layer_conf']))
-        # axmet[0].set_xlabel("mT [GeV]")
-        axmet[0].set_ylabel("Frequency")
-        axmet[0].axis([0,400,0,50])
-        axmet[0].autoscale(axis='y')
-        
-        axmet[1].hist(res['mt_defaul_list'], 100)
-        axmet[1].set_title("default result")
-        axmet[1].set_xlabel("mT [GeV]")
-        axmet[1].set_ylabel("Frequency")
-        axmet[1].axis([0,400,0,50])
-        axmet[1].autoscale(axis='y')
+    axres[-1].hist(result[0]['defaul_list'], 2000)
+    axres[-1].set_title("default result")
+    axres[-1].set_xlabel("resolution (%)")
+    axres[-1].set_ylabel("Frequency")
+    axres[-1].axis([-200,200,0,250])
+    axres[-1].autoscale(axis='y')
 
-        fig.savefig("met_{}class".format(res['layer_conf']))
+    axmet[-1].hist(result[0]['mt_defaul_list'], 100)
+    axmet[-1].set_title("default result")
+    axmet[-1].set_xlabel("mT [GeV]")
+    axmet[-1].set_ylabel("Frequency")
+    axmet[-1].axis([0,400,0,50])
+    axmet[-1].autoscale(axis='y')
 
+    figres.savefig("res.pdf")
+    figmet.savefig("met.pdf")
     plt.show()
     
 def train_net(nn_layers, max_train_epochs=200):
@@ -91,7 +85,7 @@ def train_net(nn_layers, max_train_epochs=200):
     # Normalize dataset to mean 0 var 1 column wize. NaNs are skipped.
     datasetmean = dataset.mean()
     datasetstd = dataset.std()
-    selected_sample = ( dataset - datasetmean ) / datasetstd
+    selected_sample = ( dataset - datasetmean ) / datasetstd + 0.5
     
     # Just to print some info about out dataset
     # print(selected_sample.head(10))
@@ -133,32 +127,46 @@ def train_net(nn_layers, max_train_epochs=200):
     # The target we're using to train the algorithm.
     train_target = train[train_var]
 
-    # reformat the data to use with pybrain
-    supervised_data = SupervisedDataSet(npredictors, 1)
-    for pred, targ in zip( train_predictors.as_matrix(),
-                           train_target.as_matrix()      ):
-        supervised_data.addSample(pred, targ)
+    # The predictors we're using the test the algorithm.
+    test_predictors = test[predictors_final]
+    # The target we're using to test the algorithm.
+    test_target = test[train_var]
 
-    # Training the algorithm using the predictors and target.
-    layers = [npredictors] + nn_layers + [1]
-    # print( "Using {} predictors.\n"
-    #        "Layer config: {}.\n"
-    #        "Training for max {} epochs."
-    #        .format(npredictors, layers, max_train_epochs) )
+    model = Sequential()
+    model.add( Dense( output_dim=nn_layers[0],
+                      input_dim=npredictors,
+                      init='glorot_uniform'  ) )
+    model.add( Activation("sigmoid") )
+    for i in range(len(nn_layers) - 1):
+        model.add( Dense( output_dim=nn_layers[i+1],
+                          input_dim=nn_layers[i],
+                          init='glorot_uniform'  ) )
+        model.add( Activation("sigmoid") )
+        # print("Added hidden {} {}".format(nn_layers[i+1],nn_layers[i]))
+    model.add( Dense(output_dim=1, init='glorot_uniform') )
+    model.add( Activation("linear") )
+    model.compile(loss='mse', optimizer='sgd')
+    model.fit( train_predictors.as_matrix(), train_target.as_matrix(),
+               nb_epoch=max_train_epochs, batch_size=32 )
 
-    net = buildNetwork( *layers, bias=True,
-                        hiddenclass=SigmoidLayer, outclass=LinearLayer )
-    trainer = BackpropTrainer(net, supervised_data, verbose=False)
-    train_errs, val_errs = trainer.trainUntilConvergence(maxEpochs=max_train_epochs)
-
-    # We can now make predictions on the test fold
-    for x in test[predictors_final].as_matrix():
-        predictions.append(net.activate(x))
+    objective_score = model.evaluate( test_predictors.as_matrix(),
+                                      test_target.as_matrix(),
+                                      batch_size=32 )
+    print(objective_score)
+    
+    predictions = model.predict_proba(test_predictors.as_matrix(),
+                                      batch_size=32)
+    
+    # # We can now make predictions on the test fold
+    # for x in test[predictors_final].as_matrix():
+    #     predictions.append(net.activate(x))
 
     # re-normalize to physical data
-    selected_sample = datasetstd*selected_sample + datasetmean
-    predictions = datasetstd[train_var]*predictions + datasetmean[train_var]
-    target = list(datasetstd[train_var]*test[train_var] + datasetmean[train_var])
+    selected_sample = datasetstd*(selected_sample - 0.5) + datasetmean
+    predictions = ( datasetstd[train_var]*(predictions - 0.5)
+                    + datasetmean[train_var] )
+    target = list( datasetstd[train_var]*(test[train_var] - 0.5)
+                   + datasetmean[train_var] )
 
     pred=list(predictions)
     met=list(selected_sample["et(met)"])
@@ -177,7 +185,7 @@ def train_net(nn_layers, max_train_epochs=200):
     mT_predict=[]
     mT_default=[]
 
-    count_fail =0
+    count_fail = 0
 
     for i in range(len(target)):
         porcentage_predict= (target[i] - pred[i])/target[i]*100
@@ -195,65 +203,15 @@ def train_net(nn_layers, max_train_epochs=200):
         if pred[i]<0:
             count_fail=count_fail+1
 
-    # print("% times prediction is <0")
-    # print(count_fail)
-
     prediction_list = np.array(list(result_predict))
     defaul_list = np.array(list(result_default))
 
     mt_prediction_list = np.array(list(mT_predict))
     mt_defaul_list = np.array(list(mT_default))
 
-
-    # print("pT resolution")
-    # print(stats.describe(prediction_list))
-    # print(stats.describe(defaul_list))
-
-    # fig, axres = plt.subplots(2, sharex=True)
-    # bins=2000
-    # axres[0].hist(prediction_list, 2000)
-    # axres[0].set_title("Preddicted result")
-    # # axres[0].set_xlabel("resolution (%)")
-    # axres[0].set_ylabel("Frequency")
-    # axres[0].axis([-200,200,0,250])
-    # axres[0].autoscale(axis='y')
-
-    # axres[1].hist(defaul_list, 2000)
-    # axres[1].set_title("default result")
-    # axres[1].set_xlabel("resolution (%)")
-    # axres[1].set_ylabel("Frequency")
-    # axres[1].axis([-200,200,0,250])
-    # axres[1].autoscale(axis='y')
-
-    # fig.savefig("res_{}class".format(nhidden))
-
-    # print("mT distribution")
-    # print(stats.describe(mt_prediction_list))
-    # print(stats.describe(mt_defaul_list))
-
-    # fig, axmet = plt.subplots(2, sharex=True)
-    # bins=100
-    # axmet[0].hist(mt_prediction_list, 100)
-    # axmet[0].set_title("Preddicted result")
-    # # axmet[0].set_xlabel("mT [GeV]")
-    # axmet[0].set_ylabel("Frequency")
-    # axmet[0].axis([0,400,0,50])
-    # axmet[0].autoscale(axis='y')
-
-    # axmet[1].hist(mt_defaul_list, 100)
-    # axmet[1].set_title("default result")
-    # axmet[1].set_xlabel("mT [GeV]")
-    # axmet[1].set_ylabel("Frequency")
-    # axmet[1].axis([0,400,0,50])
-    # axmet[1].autoscale(axis='y')
-    
-    # fig.savefig("met_{}class".format(nhidden))
-
-    # plt.show()
-
-    return { 'layer_conf'         : layers,
-             'train_errs'         : train_errs,
-             'val_errs'           : val_errs,
+    return { 'layer_conf'         : [npredictors] + nn_layers + [1],
+             'train_errs'         : 0,
+             'val_errs'           : 0,
              'prediction_list'    : prediction_list,
              'defaul_list'        : defaul_list,
              'mt_prediction_list' : mt_prediction_list,
