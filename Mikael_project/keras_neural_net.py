@@ -1,6 +1,3 @@
-from keras.models import Sequential
-from keras.layers.core import Dense, Activation
-
 import sys
 import pandas as pd
 import numpy as np
@@ -13,34 +10,64 @@ from scipy.stats import norm
 
 from sklearn.cross_validation import train_test_split
 from sklearn.feature_selection import SelectKBest, f_classif
-from sklearn import gaussian_process
 
+from keras.models import Sequential
+from keras.layers.core import Dense, Activation
+
+# To run on GPU, prepend set the THEANO_FLAGS:
+# THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32 python keras_neural_net.py
 
 def main(argv):
     # hidden = [[20,5]]
     # hidden = [[50,20],[50,40],[100,10],[100,80],[20,100],[10,20]]
-    hidden = [[25,20]] # This is a go0d one!
+    # This is a good one!
+    # train_args = [ {'layers':[25,20], 'activation':['sigmoid','sigmoid']},
+    #                {'layers':[25,20], 'activation':['tanh','tanh']},
+    #                {'layers':[25,20], 'activation':['softmax','softmax']},
+    #                {'layers':[25,20], 'activation':['relu','relu']} ]
+    # train_args = [ {'layers':[25,10], 'activation':['sigmoid','sigmoid']},
+    #                {'layers':[25,10], 'activation':['tanh','tanh']},
+    #                {'layers':[25,10], 'activation':['softmax','softmax']},
+    #                {'layers':[25,10], 'activation':['relu','relu']},
+    #                {'layers':[25,5], 'activation':['sigmoid','sigmoid']},
+    #                {'layers':[25,5], 'activation':['tanh','tanh']},
+    #                {'layers':[25,5], 'activation':['softmax','softmax']},
+    #                {'layers':[25,5], 'activation':['relu','relu']} ]
+    # train_args = [ {'layers':[15,20], 'activation':['sigmoid','sigmoid']},
+    #                {'layers':[15,10], 'activation':['sigmoid','sigmoid']},
+    #                {'layers':[15,5], 'activation':['sigmoid','sigmoid']},
+    #                {'layers':[15,5], 'activation':['sigmoid','sigmoid']},
+    #                {'layers':[10,15], 'activation':['sigmoid','sigmoid']},
+    #                {'layers':[10,10], 'activation':['sigmoid','sigmoid']},
+    #                {'layers':[10,5], 'activation':['sigmoid','sigmoid']},
+    #                {'layers':[5,5], 'activation':['sigmoid','sigmoid']}]
+    train_args = [ {'layers':[15,10], 'activation':['sigmoid','sigmoid']}]
+
+    result = [train_net(train_args[0])]
     
-    multipool = Pool(processes=3)
-    result = multipool.map(train_net, hidden)
+    # multipool = Pool(processes=3)
+    # result = multipool.map(train_net, train_args)
 
     figres, axres = plt.subplots( len(result)+1, sharex=True )
     figmet, axmet = plt.subplots( len(result)+1, sharex=True )
 
     # print(result['prediction_list'])
     for i in range(len(result)):
+        print("Results for     : {}".format(train_args[i]))
+        print("Objective score : {}".format(result[i]['objective_score']))
+        
         axres[i].hist(result[i]['prediction_list'], 2000)
-        axres[i].set_title( "Preddicted result {}"
-                            .format(result[i]['layer_conf']) )
-        # axres[i].set_xlabel("resolution (%)")
+        axres[i].set_title( "Hidden {}, activation {}"
+                            .format( train_args[i]['layers'],
+                                     train_args[i]['activation'] ) )
         axres[i].set_ylabel("Frequency")
         axres[i].axis([-200,200,0,250])
         axres[i].autoscale(axis='y')
-
+        
         axmet[i].hist(result[i]['mt_prediction_list'], 100)
-        axmet[i].set_title( "Preddicted result {}"
-                            .format(result[i]['layer_conf']) )
-        # axmet[i].set_xlabel("mT [GeV]")
+        axmet[i].set_title( "Hidden {}, activation {}"
+                            .format( train_args[i]['layers'],
+                                     train_args[i]['activation'] ) )
         axmet[i].set_ylabel("Frequency")
         axmet[i].axis([0,400,0,50])
         axmet[i].autoscale(axis='y')
@@ -63,9 +90,10 @@ def main(argv):
     figmet.savefig("met.pdf")
     plt.show()
     
-def train_net(nn_layers, max_train_epochs=500):
+def train_net(args, max_train_epochs=1000):
 
-    nhidden = 100
+    nn_layers = args['layers']
+    
     # train_var = "mass_truth"
     train_var = "pt(mc nuH)"
     
@@ -87,7 +115,7 @@ def train_net(nn_layers, max_train_epochs=500):
     # Normalize dataset to mean 0 var 1 column wize. NaNs are skipped.
     datasetmean = dataset.mean()
     datasetstd = dataset.std()
-    selected_sample = ( dataset - datasetmean ) / datasetstd + 0.5
+    selected_sample = ( dataset - datasetmean ) / datasetstd + 0.0
     
     # Just to print some info about out dataset
     # print(selected_sample.head(10))
@@ -135,16 +163,16 @@ def train_net(nn_layers, max_train_epochs=500):
     test_target = test[train_var]
 
     model = Sequential()
-    model.add( Dense( output_dim=nn_layers[0],
+    model.add( Dense( output_dim=args['layers'][0],
                       input_dim=npredictors,
                       init='glorot_uniform'  ) )
-    model.add( Activation("sigmoid") )
-    for i in range(len(nn_layers) - 1):
-        model.add( Dense( output_dim=nn_layers[i+1],
-                          input_dim=nn_layers[i],
+    model.add( Activation(args['activation'][0]) )
+    for i in range(len(args['layers']) - 1):
+        model.add( Dense( output_dim=args['layers'][i+1],
+                          input_dim=args['layers'][i],
                           init='glorot_uniform'  ) )
-        model.add( Activation("sigmoid") )
-        # print("Added hidden {} {}".format(nn_layers[i+1],nn_layers[i]))
+        model.add( Activation(args['activation'][i+1]) )
+        # print("Added hidden {} {}".format(args['layers'][i+1],args['layers'][i]))
     model.add( Dense(output_dim=1, init='glorot_uniform') )
     model.add( Activation("linear") )
     model.compile(loss='mse', optimizer='sgd')
@@ -160,20 +188,20 @@ def train_net(nn_layers, max_train_epochs=500):
     
 
     # re-normalize to physical data
-    selected_sample = datasetstd*(selected_sample - 0.5) + datasetmean
-    predictions = ( datasetstd[train_var]*(predictions - 0.5)
+    selected_sample = datasetstd*(selected_sample - 0.0) + datasetmean
+    predictions = ( datasetstd[train_var]*(predictions - 0.0)
                     + datasetmean[train_var] )
-    target  = list( datasetstd[train_var]*(test[train_var] - 0.5)
+    target  = list( datasetstd[train_var]*(test[train_var] - 0.0)
                     + datasetmean[train_var] )
     pred    = list(predictions)
-    met     = list( datasetstd["et(met)"]*( test["et(met)"] - 0.5 )
+    met     = list( datasetstd["et(met)"]*( test["et(met)"] - 0.0 )
                     + datasetmean["et(met)"] )
-    met_phi = list( datasetstd[" phi(met)"]*( test[" phi(met)"] - 0.5 )
+    met_phi = list( datasetstd[" phi(met)"]*( test[" phi(met)"] - 0.0 )
                     + datasetmean[" phi(met)"] )
-    taupt   = list( datasetstd["pt(reco tau1)"]*( test["pt(reco tau1)"] - 0.5 )
+    taupt   = list( datasetstd["pt(reco tau1)"]*( test["pt(reco tau1)"] - 0.0 )
                    + datasetmean["pt(reco tau1)"] )
     tauphi  = list( datasetstd["phi(reco tau1)"]*( test["phi(reco tau1)"]
-                                                   - 0.5 )
+                                                   - 0.0 )
                     + datasetmean["phi(reco tau1)"] )
 
 
@@ -211,9 +239,7 @@ def train_net(nn_layers, max_train_epochs=500):
     mt_prediction_list = np.array(list(mT_predict))
     mt_defaul_list = np.array(list(mT_default))
 
-    return { 'layer_conf'         : [npredictors] + nn_layers + [1],
-             'train_errs'         : 0,
-             'val_errs'           : 0,
+    return { 'layer_conf'         : [npredictors] + args['layers'] + [1],
              'prediction_list'    : prediction_list,
              'defaul_list'        : defaul_list,
              'mt_prediction_list' : mt_prediction_list,

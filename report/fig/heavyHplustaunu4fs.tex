@@ -1,0 +1,51 @@
+\documentclass{article}
+ \usepackage{feynmp}
+ \usepackage[pdftex]{graphicx}
+ \DeclareGraphicsRule{*}{mps}{*}{}
+
+\usepackage[active,tightpage]{preview}
+%\PreviewEnvironment{fmfgraph*}
+\PreviewEnvironment{minipage}
+
+\begin{document}
+\unitlength = 1mm
+
+\begin{minipage}[c][50mm][c]{80mm}
+\centering
+\begin{fmffile}{fgraphs}
+\begin{fmfgraph*}(60,40)
+
+%\fmfstraight
+\fmfleft{d5,i1,d6,i2,d7}
+\fmftop{o3}
+\fmfbottom{o1}
+\fmfright{d1,o2,o5,d3,o4,d2}
+
+\fmflabel{$g$}{i2}
+\fmflabel{$g$}{i1}
+\fmflabel{$b$}{o1}
+%\fmflabel{$H^+$}{o2}
+\fmflabel{$\bar t$}{o3}
+\fmflabel{$\nu_\tau$}{o4}
+%\fmflabel{$\tau^+$}{v5}
+\fmflabel{$\tau_\mathrm{vis.}$}{o5}
+\fmflabel{$\bar\nu_\tau$}{o2}
+
+\fmf{gluon,tension=3}{i2,v1}
+\fmf{gluon,tension=3}{i1,v3}
+\fmf{plain,tension=2}{v3,v2,v1}
+%\fmfforce{(.5w,.5h)}{v2}
+\fmf{fermion}{o3,v1}
+\fmf{fermion}{v3,o1}
+\fmf{dashes,label=$H^+$,tension=2}{v2,v4}
+\fmf{fermion}{v4,o4}
+\fmf{fermion,label=$\tau^+$,tension=1.5}{v5,v4}
+\fmf{fermion}{o2,v5}
+\fmf{plain}{v5,o5}
+%\fmf{phantom,tension=1.5}{o2,o4}
+
+\end{fmfgraph*}
+\end{fmffile}
+\end{minipage}
+
+\end{document}
