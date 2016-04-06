@@ -53,7 +53,7 @@ int delphes2csv(const char* input) {
     fprintf(stream, "pt(mc h+),eta(mc h+),phi(mc h+),e(mc h+),");
     fprintf(stream, "pt(mc tau),eta(mc tau),phi(mc tau),e(mc tau),");
     fprintf(stream, "pt(mc nuH),eta(mc nuH),phi(mc nuH),e(mc nuH),");
-    fprintf(stream, "pt(mc nuTau),eta(mc nuTau),phi(eta nuTau),e(mc nuTau),");
+    fprintf(stream, "pt(mc nuTau),eta(mc nuTau),phi(mc nuTau),e(mc nuTau),");
     fprintf(stream, "et(met),phi(met),");
     fprintf(stream, "ntau,");
     fprintf(stream, "nbjet,");
