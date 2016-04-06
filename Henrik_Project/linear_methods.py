@@ -47,8 +47,8 @@ selected_predictors = [
     'et(met)', 'phi(met)',
     'pt(reco tau1)', 'eta(reco tau1)', 'phi(reco tau1)',
     'pt(reco bjet1)', 'eta(reco bjet1)', 'phi(reco bjet1)', 'm(reco bjet1)',
-    #'phi(reco bjet3)', 'm(reco bjet3)', 'pt(reco bjet4)',
-    #'eta(reco bjet4)', 'phi(reco bjet4)', 'm(reco bjet4)',
+    #'phi(reco bjet3)', 'm(reco bjet3)',
+    #'pt(reco bjet4)', 'eta(reco bjet4)', 'phi(reco bjet4)', 'm(reco bjet4)',
     'pt(reco jet1)', 'eta(reco jet1)', 'phi(reco jet1)', 'm(reco jet1)',
     #'pt(reco jet2)', 'eta(reco jet2)', 'phi(reco jet2)', 'm(reco jet2)',
     'nbjet'
