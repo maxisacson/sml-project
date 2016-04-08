@@ -21,8 +21,8 @@ from keras.callbacks import History
 # THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32 python keras_neural_net.py
 
 # To-do
-# Train on m truth
-
+# Train on mass_truth (H+)
+# Look at 
 
 class NeuralNet:
 
@@ -30,20 +30,22 @@ class NeuralNet:
                   hidden_activations ):
         self.train=pd.DataFrame(traindata)
         self.test=pd.DataFrame(testdata)
-        if not all( t in traindata for t in targets):
-            raise ValueError( "Some training targets variable in '{}'"
-                              " does not exist.".format(targets) )
-        if not all( t in testdata for t in targets):
-            raise ValueError( "Some test targets variable in '{}'"
-                              " does not exist.".format(targets) )
+        for t in targets:
+            if not t in traindata:
+                raise ValueError( "Training set target '{}' does not exist."
+                                  .format(t) )
+            if not t in testdata:
+                raise ValueError( "Test set target '{}' does not exist."
+                                  .format(t) )
         self.targets=targets
         self.ntargets=len(targets)
-        if not all( p in traindata for p in predictors ):
-            raise ValueError( "Some training predictor variable in '{}'"
-                              " does not exist.".format(predictors) )
-        if not all( p in testdata for p in predictors ):
-            raise ValueError( "Some test predictor variable in '{}'"
-                              " does not exist.".format(predictors) )
+        for p in predictors:
+            if not p in traindata:
+                raise ValueError( "Training set predictor '{}' does not exist."
+                                  .format(p) )
+            if not p in testdata:
+                raise ValueError( "Test set predictor '{}' does not exist."
+                                  .format(p) )
         self.predictors=predictors
         self.npredictors=len(predictors)
         if not len(hidden_nodes)==len(hidden_activations):
@@ -73,7 +75,7 @@ class NeuralNet:
         self.model.add( Activation("linear") )
         self.model.compile(loss='mse', optimizer='sgd')
 
-    def scale(self, method='mean_std', fillnan='nan'):
+    def scale(self, method='min_max', fillnan='nan'):
         self.scale_method=method
         self.trainmean = self.train.mean()
         self.trainstd = self.train.std()
@@ -106,19 +108,16 @@ class NeuralNet:
         elif fillnan=='nan':
             pass
         else:
-            raise ValueError( "Unrecognized NaN fill option '{}'"
-                              .format(fillnan) )
+            raise ValueError("Unrecognized NaN fill option '{}'".format(fillnan))
         
     def unscale(self):
         if self.scale_method=='mean_std':
             self.train = self.train*self.trainstd + self.trainmean
             self.test = self.test*self.trainstd + self.trainmean
-            # self.predictions = ( self.predictions
-            #                      * np.std(self.predictions)
-            #                      + np.mean(self.predictions) )
-            self.predictions = ( self.predictions
-                                 * self.trainstd[self.targets].as_matrix()
-                                 + self.trainmean[self.targets].as_matrix() )
+            for t in self.targets:
+                self.predictions = ( self.predictions * self.trainstd[t]
+                                     + self.trainmean[t] )
+
         elif self.scale_method=='min_max':
             self.train = ( 0.5*( self.train + 1 )
                            * ( self.trainmax - self.trainmin )
@@ -126,10 +125,11 @@ class NeuralNet:
             self.test = ( 0.5*( self.test + 1 )
                           * ( self.trainmax - self.trainmin )
                           + self.trainmin )
-            self.predictions = ( 0.5*( self.predictions + 1 )
-                                 * ( self.trainmax[self.targets].as_matrix()
-                                     - self.trainmin[self.targets].as_matrix() )
-                                 + self.trainmin[self.targets].as_matrix() )
+            for t in self.targets:
+                self.predictions[t] = ( 0.5*( self.predictions[t] + 1 )
+                                        * ( self.trainmax[t] - self.trainmin[t] )
+                                        + self.trainmin[t] )
+                
         elif self.scale_method=='quantile':
             self.train = ( 0.5*( self.train + 1 )
                            * ( self.train99q - self.train1q )
@@ -137,10 +137,11 @@ class NeuralNet:
             self.test = ( 0.5*( self.test + 1 )
                           * ( self.train99q - self.train1q )
                           + self.train1q )
-            self.predictions = ( 0.5*( self.predictions + 1 )
-                                 * ( self.train99q[self.targets].as_matrix()
-                                     - self.train1q[self.targets].as_matrix() )
-                                 + self.train1q[self.targets].as_matrix() )
+            for t in self.targets:
+                self.predictions = ( 0.5*( self.predictions + 1 )
+                                     * ( self.train99q[t] - self.train1q[t] )
+                                     + self.train1q[t] )
+
 
     def fit(self, n_epochs=100):
         history = self.model.fit( self.train[self.predictors].as_matrix(),
@@ -153,7 +154,8 @@ class NeuralNet:
     def predict(self):
         predictions = self.model.predict_proba( self.test[self.predictors]
                                                 .as_matrix(),  batch_size=32)
-        self.predictions = predictions
+        self.predictions = pd.DataFrame(predictions)
+        self.predictions.columns = self.targets
         
     # def predict(self, data, scale_data=True):
     #     predictions = self.model.predict_proba( data[self.predictors]
@@ -162,27 +164,29 @@ class NeuralNet:
             
 def main(argv):
 
-    train_args = [ {'layers':[25,15], 'activation':['sigmoid','sigmoid']}]
-    # train_args = [ {'layers':[100,70,50], 'activation':['sigmoid','sigmoid','sigmoid']}]
+    # train_args = [ {'layers':[100,75,50,25], 'activation':['sigmoid','sigmoid','sigmoid','sigmoid']}]
+    train_args = [ {'layers':[25,20], 'activation':['sigmoid','sigmoid']}]
     # train_args = [ {'layers':[100,50,25],
     #                 'activation':['sigmoid','sigmoid','sigmoid']}]
     # train_args = [ {'layers':[25,20], 'activation':['sigmoid','sigmoid']},
     #                {'layers':[15,10], 'activation':['sigmoid','sigmoid']} ]
 
-    train_var = ["pt(mc nuH)"]
+    train_var = ["pt(mc nuH)","eta(mc nuH)","phi(mc nuH)","e(mc nuH)"]
     scale_method = 'min_max' # 'min_max', 'mean_std', or 'quantile'
     n_epochs = 5000
 
-    model_file = "nn-weights-{}-{}-{}-{}.h5".format( train_args[0]['layers'],
-                                                     train_args[0]['activation'],
-                                                     scale_method,
-                                                     n_epochs)
-    plot_file = "nn-plot-{}-{}-{}-{}.pdf".format( train_args[0]['layers'],
-                                                  train_args[0]['activation'],
-                                                  scale_method,
-                                                  n_epochs)
+    layernames = '-'.join([str(x) for x in train_args[0]['layers']])
+    activationnames = '-'.join([x[0:3] for x in train_args[0]['activation']])
+    model_file = ( "nnw-{}-{}-{}-{}-{}.h5".format( layernames, activationnames,
+                                                   scale_method,
+                                                   '-'.join(train_var),
+                                                   n_epochs ) )
+    plot_file = "{}-{}-{}-{}-{}.pdf".format( layernames, activationnames,
+                                              scale_method,
+                                              '-'.join(train_var),
+                                              n_epochs)
     
-    pd.set_option('display.max_columns', 500)
+    pd.set_option('display.max_columns', 100)
     dataset = pd.read_csv("../test/mg5pythia8_hp200.root.test3.csv", nrows=10000)
     # Add truth mass of H+ to dataset
     dataset["mass_truth"] = ( np.sqrt(2*(dataset["pt(mc nuH)"])
@@ -195,15 +199,22 @@ def main(argv):
     # Replace invalid values with NaN
     dataset = dataset.where(dataset > -998.0, other=np.nan)
     # Predictor variables as determined by SciKit Learn's selectKBest
-    predictors_final = ["et(met)",
-                        "phi(met)", "pt(reco tau1)", "eta(reco tau1)",
-                        "phi(reco tau1)", "pt(reco bjet1)", "pt(reco bjet1)",
-                        "eta(reco bjet1)", "phi(reco bjet1)", "m(reco bjet1)",
-                        "phi(reco bjet3)", "m(reco bjet3)", "pt(reco bjet4)",
-                        "eta(reco bjet4)", "phi(reco bjet4)", "m(reco bjet4)",
-                        "pt(reco jet1)", "eta(reco jet1)", "phi(reco jet1)",
-                        "m(reco jet1)", "pt(reco jet2)", "eta(reco jet2)",
-                        "phi(reco jet2)", "m(reco jet2)", "nbjet"]
+    predictors_final = [ "et(met)", "phi(met)", "nbjet",
+                         
+                         "pt(reco tau1)", "eta(reco tau1)",
+                         "phi(reco tau1)", "m(reco tau1)",
+                        
+                         "pt(reco bjet1)", "eta(reco bjet1)",
+                         "phi(reco bjet1)", "m(reco bjet1)",
+                         
+                         "pt(reco bjet2)", "eta(reco bjet2)",
+                         "phi(reco bjet2)", "m(reco bjet2)",
+                        
+                         "pt(reco jet1)", "eta(reco jet1)",
+                         "phi(reco jet1)", "m(reco jet1)",
+
+                         "pt(reco jet2)", "eta(reco jet2)",
+                         "phi(reco jet2)", "m(reco jet2)" ]
     # Split dataset into a training and a testing (validation) set
     train, test = train_test_split( dataset,
                                     test_size=0.3,
@@ -260,24 +271,41 @@ def main(argv):
                'lines.linewidth': 2.0,
                'axes.prop_cycle': plt.cycler('color',colors)}
     plt.rcParams.update(params)
-    
-    fig, ax = plt.subplots(2)
-    ax[0].hist(pred, 50, label='Pred', histtype='step')
-    ax[0].hist(met, 50, label='Obs', histtype='step')
-    ax[0].hist(nn.test['pt(mc nuH)'], 50, label='Truth', histtype='step')
-    ax[0].set_xlim([0,400])
-    ax[0].set_xlabel("pt (GeV)")
-    ax[0].legend(loc='upper right')
 
-    ax[1].hist(resolution_predict, 100, label='Pred', histtype='step')
-    ax[1].hist(resolution_default, 100, label='Obs', histtype='step')
-    ax[1].set_xlim([-100,100])
-    ax[1].set_xlabel("Resolution (%)")
-    ax[1].legend(loc='upper left')
-
-    fig.tight_layout(pad=0.3)
-    fig.savefig(plot_file)
+    binranges = [np.linspace(0, 300, 50), np.linspace(-4, 4, 50),
+                 np.linspace(-3.1415, 3.1415, 50), np.linspace(0, 600, 50)]
+    fig1, ax1 = plt.subplots(len(train_var), figsize=(5,12))
+    for i in range(len(train_var)):
+        ax1[i].hist( nn.predictions[train_var[i]], bins=binranges[i],
+                     label='Pred', histtype='step' )
+        ax1[i].hist( nn.test[train_var[i]], bins=binranges[i],
+                     label='Truth', histtype='step' )
+        # ax1[i].set_xlim( [ min([i]),
+        #                    max(nn.test[train_var[i]])  ] )
+        ax1[i].set_xlabel(train_var[i])
+        ax1[i].legend()
+    fig1.tight_layout(pad=0.3)
+    fig1.savefig(plot_file)
     plt.show()
+    
+    # fig, ax = plt.subplots(2)
+
+    # ax[0].hist(pred, 50, label='Pred', histtype='step')
+    # ax[0].hist(met, 50, label='Obs', histtype='step')
+    # ax[0].hist(nn.test['pt(mc nuH)'], 50, label='Truth', histtype='step')
+    # ax[0].set_xlim([0,400])
+    # ax[0].set_xlabel("pt (GeV)")
+    # ax[0].legend(loc='upper right')
+
+    # ax[1].hist(resolution_predict, 100, label='Pred', histtype='step')
+    # ax[1].hist(resolution_default, 100, label='Obs', histtype='step')
+    # ax[1].set_xlim([-100,100])
+    # ax[1].set_xlabel("Resolution (%)")
+    # ax[1].legend(loc='upper left')
+
+    # fig.tight_layout(pad=0.3)
+    # fig.savefig(plot_file)
+    # plt.show()
 
 
 
