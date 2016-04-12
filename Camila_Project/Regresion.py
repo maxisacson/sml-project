@@ -5,6 +5,8 @@ from scipy.stats import norm
 import matplotlib.mlab as mlab
 
 from sklearn import linear_model
+from sklearn import svm
+from sklearn import tree
 
 from sklearn.linear_model import LinearRegression
 from sklearn.cross_validation import KFold
@@ -18,7 +20,7 @@ import matplotlib.pyplot as plt
 import math
 
 pd.set_option('display.max_columns', 500)
-titanic = pd.read_csv("mg5pythia8_hp200.root.test2.csv")
+titanic = pd.read_csv("mg5pythia8_hp200.root.test3.csv")
 selected_sample=titanic
 
 ##some variables are empy, this avoids pandas complaining
@@ -30,7 +32,7 @@ print(selected_sample.describe())
 
 ##Sklearn has a function that will help us with feature selection, SelectKBest. This selects the best features from the data, and allows us to specify how many it selects.
 
-predictors = ["et(met)"," phi(met)","ntau","nbjet","njet","pt(reco tau1)","eta(reco tau1)","phi(reco tau1)","m(reco tau1)","pt(reco bjet1)","eta(reco bjet1)","phi(reco bjet1)","m(reco bjet1)","pt(reco bjet2)","eta(reco bjet2)","phi(reco bjet2)","m(reco bjet2)","pt(reco bjet3)","eta(reco bjet3)","phi(reco bjet3)","m(reco bjet3)","pt(reco bjet4)","eta(reco bjet4)","phi(reco bjet4)","m(reco bjet4)","pt(reco jet1)","eta(reco jet1)","phi(reco jet1)","m(reco jet1)","pt(reco jet2)","eta(reco jet2)","phi(reco jet2)","m(reco jet2)","pt(reco jet3)","eta(reco jet3)","phi(reco jet3)","m(reco jet3)","pt(reco jet4)","eta(reco jet4)","phi(reco jet4)","m(reco jet4)"]
+predictors = ["et(met)","phi(met)","ntau","nbjet","njet","pt(reco tau1)","eta(reco tau1)","phi(reco tau1)","m(reco tau1)","pt(reco bjet1)","eta(reco bjet1)","phi(reco bjet1)","m(reco bjet1)","pt(reco bjet2)","eta(reco bjet2)","phi(reco bjet2)","m(reco bjet2)","pt(reco bjet3)","eta(reco bjet3)","phi(reco bjet3)","m(reco bjet3)","pt(reco bjet4)","eta(reco bjet4)","phi(reco bjet4)","m(reco bjet4)","pt(reco jet1)","eta(reco jet1)","phi(reco jet1)","m(reco jet1)","pt(reco jet2)","eta(reco jet2)","phi(reco jet2)","m(reco jet2)","pt(reco jet3)","eta(reco jet3)","phi(reco jet3)","m(reco jet3)","pt(reco jet4)","eta(reco jet4)","phi(reco jet4)","m(reco jet4)"]
 
 # Perform feature selection
 selector = SelectKBest(f_classif, k=5)
@@ -45,14 +47,14 @@ scores = -np.log10(selector.pvalues_)
 #plt.show()
 
 #picked the best features according to SelectKBest
-predictors_final = ["et(met)", " phi(met)","pt(reco tau1)", "eta(reco tau1)", "phi(reco tau1)","pt(reco bjet1)","pt(reco bjet1)","eta(reco bjet1)","phi(reco bjet1)","m(reco bjet1)","phi(reco bjet3)","m(reco bjet3)","pt(reco bjet4)","eta(reco bjet4)","phi(reco bjet4)","m(reco bjet4)","pt(reco jet1)","eta(reco jet1)","phi(reco jet1)","m(reco jet1)","pt(reco jet2)","eta(reco jet2)","phi(reco jet2)","m(reco jet2)","nbjet"]
+predictors_final = ["et(met)", "phi(met)","pt(reco tau1)", "eta(reco tau1)", "phi(reco tau1)","pt(reco bjet1)","pt(reco bjet1)","eta(reco bjet1)","phi(reco bjet1)","m(reco bjet1)","pt(reco jet1)","eta(reco jet1)","phi(reco jet1)","m(reco jet1)","pt(reco jet2)","eta(reco jet2)","phi(reco jet2)","m(reco jet2)","nbjet"]
 
 
 # Initialize our algorithm class
-#alg = LinearRegression()
-alg = linear_model.Ridge(alpha = 10)# Generate cross validation folds for the  dataset.  It return the row indices corresponding to train and test.
+alg = tree.DecisionTreeRegressor(max_depth=100)
+#alg = linear_model.BayesianRidge()# Generate cross validation folds for the  dataset.  It return the row indices corresponding to train and test.
 # We set random_state to ensure we get the same splits every time we run this.
-kf = KFold(selected_sample.shape[0], n_folds=3, random_state=1)
+kf = KFold(selected_sample.shape[0], n_folds=5, random_state=1)
 
 predictions = []
 for train, test in kf:
@@ -70,7 +72,7 @@ predictions = np.concatenate(predictions, axis=0)
 target=list(selected_sample["pt(mc nuH)"])
 pred=list(predictions)
 met=list(selected_sample["et(met)"])
-met_phi=list(selected_sample[" phi(met)"])
+met_phi=list(selected_sample["phi(met)"])
 taupt=list(selected_sample["pt(reco tau1)"])
 tauphi=list(selected_sample["phi(reco tau1)"])
 
@@ -129,15 +131,15 @@ plt.hist(prediction_list, bins)
 plt.title("Preddicted result")
 plt.xlabel("resolution (%)")
 plt.ylabel("Frequency")
-plt.axis([-200,200,0,600])
+plt.axis([-200,200,0,5500])
 plt.show()
 
-plt.hist(defaul_list, bins)
-plt.title("default result")
-plt.xlabel("resolution (%)")
-plt.ylabel("Frequency")
-plt.axis([-200,200,0,600])
-plt.show()
+#plt.hist(defaul_list, bins)
+#plt.title("default result")
+#plt.xlabel("resolution (%)")
+#plt.ylabel("Frequency")
+#plt.axis([-200,200,0,5000])
+#plt.show()
 
 print("pT ")
 print(stats.describe(pt_prediction_list))
@@ -148,14 +150,14 @@ plt.hist(pt_prediction_list, bins)
 plt.title("Preddicted result")
 plt.xlabel("pT [GeV]")
 plt.ylabel("Frequency")
-plt.axis([0,300,0,500])
+plt.axis([0,300,0,3000])
 plt.show()
 
 plt.hist(pt_true_list, bins)
 plt.title("default result")
 plt.xlabel("pT [GeV]")
 plt.ylabel("Frequency")
-plt.axis([0,300,0,500])
+plt.axis([0,300,0,3000])
 plt.show()
 
 print("mT distribution")
@@ -167,14 +169,14 @@ plt.hist(mt_prediction_list, bins)
 plt.title("Preddicted result")
 plt.xlabel("mT [GeV]")
 plt.ylabel("Frequency")
-plt.axis([0,400,0,400])
+plt.axis([0,400,0,5000])
 plt.show()
 
 plt.hist(mt_defaul_list, bins)
 plt.title("default result")
 plt.xlabel("mT [GeV]")
 plt.ylabel("Frequency")
-plt.axis([0,400,0,400])
+plt.axis([0,400,0,5000])
 plt.show()
 
 
