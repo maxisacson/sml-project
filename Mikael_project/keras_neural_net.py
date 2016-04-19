@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 from multiprocessing import Pool
 
 from scipy import stats
-from scipy.stats import norm
+from scipy.stats import norm,t
 
-from sklearn.cross_validation import train_test_split
+from sklearn.cross_validation import train_test_split,StratifiedKFold
 from sklearn.feature_selection import SelectKBest, f_classif
 
 from keras.models import Sequential
@@ -22,7 +22,7 @@ from keras.callbacks import History
 
 # To-do
 # Train on mass_truth (H+)
-# Look at 
+# EarlyStopping?
 
 class NeuralNet:
 
@@ -157,107 +157,21 @@ class NeuralNet:
         self.predictions = pd.DataFrame(predictions)
         self.predictions.columns = self.targets
         
-    # def predict(self, data, scale_data=True):
-    #     predictions = self.model.predict_proba( data[self.predictors]
-    #                                             .as_matrix(),  batch_size=32)
-    #     return predictions
             
 def main(argv):
 
-    # train_args = [ {'layers':[100,75,50,25], 'activation':['sigmoid','sigmoid','sigmoid','sigmoid']}]
-    train_args = [ {'layers':[25,20], 'activation':['sigmoid','sigmoid']}]
-    # train_args = [ {'layers':[100,50,25],
-    #                 'activation':['sigmoid','sigmoid','sigmoid']}]
-    # train_args = [ {'layers':[25,20], 'activation':['sigmoid','sigmoid']},
-    #                {'layers':[15,10], 'activation':['sigmoid','sigmoid']} ]
-
-    train_var = ["pt(mc nuH)","eta(mc nuH)","phi(mc nuH)","e(mc nuH)"]
+    # User configuration
+    # train_args = [ {'layers':[25,10], 'activation':['sigmoid','sigmoid']}]
+    train_args = [ {'layers':[25,15,25], 'activation':['sigmoid','sigmoid','sigmoid']}]
+    # train_var = ["pt(mc nuH)","eta(mc nuH)","phi(mc nuH)","e(mc nuH)"]
+    train_var = ["pt(mc nuH)"]
     scale_method = 'min_max' # 'min_max', 'mean_std', or 'quantile'
-    n_epochs = 5000
+    n_epochs = 1000
+    npts = 100000
+    kfolds = 3
 
-    layernames = '-'.join([str(x) for x in train_args[0]['layers']])
-    activationnames = '-'.join([x[0:3] for x in train_args[0]['activation']])
-    model_file = ( "nnw-{}-{}-{}-{}-{}.h5".format( layernames, activationnames,
-                                                   scale_method,
-                                                   '-'.join(train_var),
-                                                   n_epochs ) )
-    plot_file = "{}-{}-{}-{}-{}.pdf".format( layernames, activationnames,
-                                              scale_method,
-                                              '-'.join(train_var),
-                                              n_epochs)
-    
-    pd.set_option('display.max_columns', 100)
-    dataset = pd.read_csv("../test/mg5pythia8_hp200.root.test3.csv", nrows=10000)
-    # Add truth mass of H+ to dataset
-    dataset["mass_truth"] = ( np.sqrt(2*(dataset["pt(mc nuH)"])
-                                      *(dataset["pt(mc tau)"])
-                                      * ( np.cosh(dataset["eta(mc nuH)"]
-                                                  - dataset["eta(mc tau)"])
-                                          - np.cos(dataset["phi(mc nuH)"]
-                                                   - dataset["phi(mc tau)"]))) )
-
-    # Replace invalid values with NaN
-    dataset = dataset.where(dataset > -998.0, other=np.nan)
-    # Predictor variables as determined by SciKit Learn's selectKBest
-    predictors_final = [ "et(met)", "phi(met)", "nbjet",
-                         
-                         "pt(reco tau1)", "eta(reco tau1)",
-                         "phi(reco tau1)", "m(reco tau1)",
-                        
-                         "pt(reco bjet1)", "eta(reco bjet1)",
-                         "phi(reco bjet1)", "m(reco bjet1)",
-                         
-                         "pt(reco bjet2)", "eta(reco bjet2)",
-                         "phi(reco bjet2)", "m(reco bjet2)",
-                        
-                         "pt(reco jet1)", "eta(reco jet1)",
-                         "phi(reco jet1)", "m(reco jet1)",
-
-                         "pt(reco jet2)", "eta(reco jet2)",
-                         "phi(reco jet2)", "m(reco jet2)" ]
-    # Split dataset into a training and a testing (validation) set
-    train, test = train_test_split( dataset,
-                                    test_size=0.3,
-                                    random_state=1 )
-    # Initialize the neural net
-    nn = NeuralNet( traindata          = train,
-                    testdata           = test,
-                    targets            = train_var,
-                    predictors         = predictors_final,
-                    hidden_nodes       = train_args[0]['layers'],
-                    hidden_activations = train_args[0]['activation'] )
-    nn.scale(method=scale_method,fillnan='zero')
-    nn.compile()
-    # Load weights from file if the training already has been done
-    if os.path.isfile(model_file):
-        print("Loading model weights from file {}".format(model_file))
-        nn.load_weights(model_file)
-    else:
-        history = nn.fit(n_epochs)
-        print(history['loss'][-1])
-        print("Saving model weights to file {}".format(model_file))
-        nn.save_weights(model_file)
-    # Predict 'train_var' and rescale to its physical value.
-    nn.predict() 
-    nn.unscale()
-    # multipool = Pool(processes=3)
-    # result = multipool.map(train_net, train_args)
-
-    pred    = np.array(nn.predictions)
-    target  = np.array(nn.test[train_var].as_matrix())
-    met     = np.array(nn.test["et(met)"].as_matrix().reshape(-1,1))
-    met_phi = np.array(nn.test["phi(met)"].as_matrix())
-    # taupt   = np.array(nn.test["pt(reco tau1)"].as_matrix())
-    # tauphi  = np.array(nn.test["phi(reco tau1)"].as_matrix())
-    resolution_predict_tmp = (target - pred)/target*100
-    resolution_predict = [ item for sublist in resolution_predict_tmp
-                           for item in sublist if abs(item) < 200 ]
-    resolution_default_tmp = (target - met)/target*100
-    resolution_default = [ item for sublist in resolution_default_tmp
-                           for item in sublist if abs(item) < 200]
-    
+    # Setup matplotlib
     colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00']
-
     params = { 'figure.facecolor': 'white',
                'figure.subplot.bottom': 0.0,
                'font.size': 16, 
@@ -272,129 +186,220 @@ def main(argv):
                'axes.prop_cycle': plt.cycler('color',colors)}
     plt.rcParams.update(params)
 
-    binranges = [np.linspace(0, 300, 50), np.linspace(-4, 4, 50),
-                 np.linspace(-3.1415, 3.1415, 50), np.linspace(0, 600, 50)]
-    fig1, ax1 = plt.subplots(len(train_var), figsize=(5,12))
-    for i in range(len(train_var)):
-        ax1[i].hist( nn.predictions[train_var[i]], bins=binranges[i],
-                     label='Pred', histtype='step' )
-        ax1[i].hist( nn.test[train_var[i]], bins=binranges[i],
-                     label='Truth', histtype='step' )
-        # ax1[i].set_xlim( [ min([i]),
-        #                    max(nn.test[train_var[i]])  ] )
-        ax1[i].set_xlabel(train_var[i])
-        ax1[i].legend()
+
+    # Define output names
+    layernames = '-'.join([str(x) for x in train_args[0]['layers']])
+    activationnames = '-'.join([x[0:3] for x in train_args[0]['activation']])
+    # Read dataset 
+    pd.set_option('display.max_columns', 100)
+    datafiles = [ "../test/mg5pythia8_hp200.root.test3.csv"]
+    # datafiles = [ "../test/mg5pythia8_hp200.root.test3.csv",
+    #               "../test/mg5pythia8_hp300.root.test.csv",
+    #               "../test/mg5pythia8_hp400.root.test.csv" ]
+    tmp_frames = []
+    for d in datafiles:
+        tmp_frames.append(pd.read_csv(d))
+    dataset_tmp = pd.concat(tmp_frames)
+    if len(dataset_tmp) < npts:
+        npts = len(dataset_tmp)
+        print("WARNING: Number of requested data points more than available")
+        print("         Loaded all {} datapoints".format(npts))
+    dataset = dataset_tmp.sample(npts, random_state=1)
+    # Add truth mass of H+ to dataset
+    dataset["mass_truth"] = ( np.sqrt(2*(dataset["pt(mc nuH)"])
+                                      *(dataset["pt(mc tau)"])
+                                      * ( np.cosh(dataset["eta(mc nuH)"]
+                                                  - dataset["eta(mc tau)"])
+                                          - np.cos(dataset["phi(mc nuH)"]
+                                                   - dataset["phi(mc tau)"]))) )
+
+    # Replace invalid values with NaN
+    dataset = dataset.where(dataset > -998.0, other=np.nan)
+    # Predictor variables as determined by SciKit Learn's selectKBest
+    predictors_final = [ "et(met)", "phi(met)", "nbjet",
+                         "pt(reco tau1)", "eta(reco tau1)",
+                         "phi(reco tau1)", "m(reco tau1)",
+                         "pt(reco bjet1)", "eta(reco bjet1)",
+                         "phi(reco bjet1)", "m(reco bjet1)",
+                         # "pt(reco bjet2)", "eta(reco bjet2)",
+                         # "phi(reco bjet2)", "m(reco bjet2)",
+                         "pt(reco jet1)", "eta(reco jet1)",
+                         "phi(reco jet1)", "m(reco jet1)",
+                         "pt(reco jet2)", "eta(reco jet2)",
+                         "phi(reco jet2)", "m(reco jet2)" ]
+
+    ntest = int(npts/kfolds)
+    pred_all = [None for i in range(kfolds)]
+    truth_all = [None for i in range(kfolds)]
+    met_all = [None for i in range(kfolds)]
+    history_all = [None for i in range(kfolds)]
+    res_pred_all = [None for i in range(kfolds)]
+    res_def_all = [None for i in range(kfolds)]
+
+    def run_fold(i):
+    # for i in range(kfolds):
+        print("Running fold {}/{}".format(i+1,kfolds))
+        base_ofile = "{}.{}.{}.{}.{}p.{}e.{}o{}".format( layernames,
+                                                         activationnames,
+                                                         scale_method,
+                                                         '-'.join(train_var),
+                                                         npts,
+                                                         n_epochs, i+1, kfolds )
+        testindex = [x for x in range(ntest*i,ntest*(i+1))]
+        trainindex = [x for x in range(npts) if x not in testindex]
+        train = dataset.irow(trainindex)
+        test = dataset.irow(testindex)
+        nn = None
+        nn = NeuralNet( traindata          = train,
+                        testdata           = test,
+                        targets            = train_var,
+                        predictors         = predictors_final,
+                        hidden_nodes       = train_args[0]['layers'],
+                        hidden_activations = train_args[0]['activation'] )
+        nn.scale(method=scale_method,fillnan='zero')
+        nn.compile()
+        # Load weights and history from file if already trained with this setup
+        history = None
+        if os.path.isfile(base_ofile + '.h5'):
+            print("Loading model weights from file {}".format(base_ofile + '.h5'))
+            nn.load_weights(base_ofile + '.h5')
+            tmp_hist = []
+            print("Loading model history from file {}".format(base_ofile + '.loss'))
+            with open(base_ofile + '.his','r') as f:
+                for l in f.readlines():
+                    tmp_hist.append(float(l.replace('\n','')))
+            history = {'loss':tmp_hist}
+        else:
+            history = nn.fit(n_epochs)
+            # print(history['loss'][-1])
+            print("Saving model weights to file {}".format(base_ofile + '.h5'))
+            nn.save_weights(base_ofile + '.h5')
+            print("Saving model history to file {}".format(base_ofile + '.loss'))
+            with open(base_ofile + '.his','w') as f:
+                for l in history['loss']:
+                    f.write(str(l)+'\n')
+        # Predict 'train_var' and rescale to its physical value.
+        nn.predict() 
+        nn.unscale()
+        # multipool = Pool(processes=3)
+        # result = multipool.map(train_net, train_args)
+
+        pred    = np.array(nn.predictions)
+        target  = np.array(nn.test[train_var].as_matrix())
+        met     = np.array(nn.test["et(met)"].as_matrix().reshape(-1,1))
+        met_phi = np.array(nn.test["phi(met)"].as_matrix())
+        resolution_predict_tmp = (target - pred)/target*100
+        resolution_predict = [ item for sublist in resolution_predict_tmp
+                               for item in sublist if abs(item) < 200 ]
+        resolution_default_tmp = (target - met)/target*100
+        resolution_default = [ item for sublist in resolution_default_tmp
+                               for item in sublist if abs(item) < 200]
+        pred_all[i] = [float(x) for x in pred]
+        truth_all[i] = [float(x) for x in target]
+        met_all[i] = [float(x) for x in met]
+        history_all[i] = history['loss']
+        res_pred_all[i] = [float(x) for x in resolution_predict]
+        res_def_all[i] = [float(x) for x in resolution_default]
+
+        # if one training target
+        binranges = np.linspace(0, 300, 50)
+        fig1, ax1 = plt.subplots(1)
+        ax1.hist( nn.test[train_var[0]], bins=binranges,
+                  label='Truth', histtype='step' )
+        ax1.hist( nn.predictions[train_var[0]], bins=binranges,
+                  label='Pred', histtype='step' )
+        # ax1.set_xlim( [ min([i]),
+        #                    max(nn.test[train_var])  ] )
+        ax1.set_xlabel(train_var[0])
+        ax1.legend()
+        fig1.tight_layout(pad=0.3)
+        fig1.savefig(base_ofile + '.pt.pdf')
+        plt.close(fig1)
+
+        # Plot training error ("loss") as function of training epoch
+        fig2, ax2 = plt.subplots(1)
+        ax2.plot(history['loss'], color='k')
+        ax2.set_xlabel('Epoch')
+        ax2.set_ylabel('Loss')
+        ax2.set_ylim([0.0, 0.012])
+        # ax2.set_ylim([0.9*min(history['loss']), history['loss'][1]])
+        fig2.tight_layout(pad=0.3)
+        fig2.savefig(base_ofile + '.his.pdf')
+        plt.close(fig2)
+        
+        fig3, ax3 = plt.subplots(1)
+        ax3.hist( resolution_default, bins=50, label='Default',
+                  histtype='step' )
+        ax3.hist( resolution_predict, bins=50, label='Pred',
+                  histtype='step' )
+        ax3.set_xlabel('Resolution (%)')
+        ax3.legend()
+        fig3.tight_layout(pad=0.3)
+        fig3.savefig(base_ofile + '.res.pdf')
+        plt.close(fig3)
+
+
+        # plt.show()
+
+    # foldrange = [i for i in range(kfolds)]
+    # multipool = Pool(processes=3)
+    # result = multipool.map(run_fold, foldrange)
+
+        
+    for i in range(kfolds):
+        run_fold(i)
+        
+    # Plot combined results
+    base_ofile = "{}.{}.{}.{}.{}p.{}e.{}".format( layernames, activationnames,
+                                                  scale_method,
+                                                  '-'.join(train_var),
+                                                  npts,
+                                                  n_epochs, 'all' )
+    # if one training target
+    binranges = np.linspace(0, 300, 50)
+    fig1, ax1 = plt.subplots(1)
+    predplot = [x for x in [y for y in pred_all]][0]
+    truthplot = [x for x in [y for y in truth_all]][0]
+    metplot = [x for x in [y for y in met_all]][0]
+    ax1.hist( truthplot, bins=binranges,
+              label='Truth', histtype='step' )
+    ax1.hist( metplot, bins=binranges,
+              label='MET', histtype='step' )
+    ax1.hist( predplot, bins=binranges,
+              label='Pred', histtype='step' )
+    # ax1.set_xlim( [ min([i]),
+    #                    max(nn.test[train_var])  ] )
+    ax1.set_xlabel(train_var[0])
+    ax1.legend()
     fig1.tight_layout(pad=0.3)
-    fig1.savefig(plot_file)
-    plt.show()
-    
-    # fig, ax = plt.subplots(2)
+    fig1.savefig(base_ofile + '.pt.pdf')
+    plt.close(fig1)
 
-    # ax[0].hist(pred, 50, label='Pred', histtype='step')
-    # ax[0].hist(met, 50, label='Obs', histtype='step')
-    # ax[0].hist(nn.test['pt(mc nuH)'], 50, label='Truth', histtype='step')
-    # ax[0].set_xlim([0,400])
-    # ax[0].set_xlabel("pt (GeV)")
-    # ax[0].legend(loc='upper right')
+    # Plot training error ("loss") as function of training epoch
+    fig2, ax2 = plt.subplots(1)
+    for i, his in enumerate(history_all):
+        ax2.plot(his, label='Fold {}'.format(i+1))
+    ax2.set_xlabel('Epoch')
+    ax2.set_ylabel('Loss')
+    ax2.legend()
+    ax2.set_ylim([0.0, 0.02])
+    fig2.tight_layout(pad=0.3)
+    fig2.savefig(base_ofile + '.his.pdf')
+    plt.close(fig2)
 
-    # ax[1].hist(resolution_predict, 100, label='Pred', histtype='step')
-    # ax[1].hist(resolution_default, 100, label='Obs', histtype='step')
-    # ax[1].set_xlim([-100,100])
-    # ax[1].set_xlabel("Resolution (%)")
-    # ax[1].legend(loc='upper left')
+    respredplot = [x for x in [y for y in res_pred_all]][0]
+    resdefplot = [x for x in [y for y in res_def_all]][0]
+    fig3, ax3 = plt.subplots(1)
+    ax3.hist( resdefplot, bins=50, label='Default',
+              histtype='step' )
+    ax3.hist( respredplot, bins=50, label='Pred',
+              histtype='step' )
+    ax3.legend()
+    ax3.set_xlabel('Resolution (%)')
+    fig3.tight_layout(pad=0.3)
+    fig3.savefig(base_ofile + '.res.pdf')
+    plt.close(fig3)
 
-    # fig.tight_layout(pad=0.3)
-    # fig.savefig(plot_file)
-    # plt.show()
-
-
-
-    
-# def main(argv):
-#     # train_args = [ {'layers':[25,20], 'activation':['sigmoid','sigmoid']},
-#     #                {'layers':[25,20], 'activation':['tanh','tanh']},
-#     #                {'layers':[25,20], 'activation':['softmax','softmax']},
-#     #                {'layers':[25,20], 'activation':['relu','relu']} ]
-#     # train_args = [ {'layers':[25,10], 'activation':['sigmoid','sigmoid']},
-#     #                {'layers':[25,10], 'activation':['tanh','tanh']},
-#     #                {'layers':[25,10], 'activation':['softmax','softmax']},
-#     #                {'layers':[25,10], 'activation':['relu','relu']},
-#     #                {'layers':[25,5], 'activation':['sigmoid','sigmoid']},
-#     #                {'layers':[25,5], 'activation':['tanh','tanh']},
-#     #                {'layers':[25,5], 'activation':['softmax','softmax']},
-#     #                {'layers':[25,5], 'activation':['relu','relu']} ]
-#     # train_args = [ {'layers':[15,20], 'activation':['sigmoid','sigmoid']},
-#     #                {'layers':[15,10], 'activation':['sigmoid','sigmoid']},
-#     #                {'layers':[15,5], 'activation':['sigmoid','sigmoid']},
-#     #                {'layers':[15,5], 'activation':['sigmoid','sigmoid']},
-#     #                {'layers':[10,15], 'activation':['sigmoid','sigmoid']},
-#     #                {'layers':[10,10], 'activation':['sigmoid','sigmoid']},
-#     #                {'layers':[10,5], 'activation':['sigmoid','sigmoid']},
-#     #                {'layers':[5,5], 'activation':['sigmoid','sigmoid']}]
-#     train_args = [ {'layers':[15,10], 'activation':['sigmoid','sigmoid']}]
-#     # train_args = [ {'layers':[25,20], 'activation':['sigmoid','sigmoid']},
-#     #                {'layers':[15,10], 'activation':['sigmoid','sigmoid']} ]
-
-
-    
-
-#     # re-normalize to physical data
-#     dataset.unscale()
-#     predictions = ( dataset.dstd[train_var]*(predictions - 0.0)
-#                     + dataset.dmean[train_var] )
-#     target  = list( dataset.dstd[train_var]*(test[train_var] - 0.0)
-#                     + dataset.dmean[train_var] )
-#     pred    = list(predictions)
-#     met     = list( dataset.dstd["et(met)"]*( test["et(met)"] - 0.0 )
-#                     + dataset.dmean["et(met)"] )
-#     met_phi = list( dataset.dstd["phi(met)"]*( test["phi(met)"] - 0.0 )
-#                     + dataset.dmean["phi(met)"] )
-#     taupt   = list( dataset.dstd["pt(reco tau1)"]*( test["pt(reco tau1)"] - 0.0 )
-#                    + dataset.dmean["pt(reco tau1)"] )
-#     tauphi  = list( dataset.dstd["phi(reco tau1)"]*( test["phi(reco tau1)"]
-#                                                    - 0.0 )
-#                     + dataset.dmean["phi(reco tau1)"] )
-    
-#     # I want to check the resolution of the prediction wrt the truth value resol
-#     # = (pt_pred - pt_true)/pt_true*100. I also want to compare it with the
-#     # resolution from the MET (default).
-
-#     result_predict=[]
-#     result_default=[]
-
-#     mT_predict=[]
-#     mT_default=[]
-
-#     count_fail = 0
-
-#     for i in range(len(target)):
-#         porcentage_predict= (target[i] - pred[i])/target[i]*100
-#         porcentage_met= (target[i] - met[i])/target[i]*100
-
-#         result_predict.append(porcentage_predict)
-#         result_default.append(porcentage_met)
-
-#         if taupt[i]>0 and pred[i]>0:
-#             mt_new=np.sqrt(2*pred[i]*taupt[i]*(1-np.cos(tauphi[i]-met_phi[i])))
-#             mt_old=np.sqrt(2*met[i]*taupt[i]*(1-np.cos(tauphi[i]-met_phi[i])))
-
-#             mT_predict.append(mt_new)
-#             mT_default.append(mt_old)
-#         if pred[i]<0:
-#             count_fail=count_fail+1
-
-#     prediction_list = np.array(list(result_predict))
-#     defaul_list = np.array(list(result_default))
-
-#     mt_prediction_list = np.array(list(mT_predict))
-#     mt_defaul_list = np.array(list(mT_default))
-
-#     return { 'layer_conf'         : [npredictors] + args['layers'] + [1],
-#              'prediction_list'    : prediction_list,
-#              'defaul_list'        : defaul_list,
-#              'mt_prediction_list' : mt_prediction_list,
-#              'mt_defaul_list'     : mt_defaul_list,
-#              'objective_score'    : objective_score }
 
 if __name__=="__main__":
     main(sys.argv[1:])
