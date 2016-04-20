@@ -130,7 +130,7 @@ def plot_root(sample):
     map(mt_reco.Fill, sample[mt_reco_parameter])
     map(res_pred.Fill, sample[met_pred_resolution])
     map(res_reco.Fill, sample[met_reco_resolution])
-    map(profile.Fill, sample['pt(reco tau1)'], sample[met_pred_ratio])
+    map(profile.Fill, sample['pt(mc nuH)'], sample[met_pred_ratio])
 
     root_file = TFile.Open('{}.root'.format(base_name), 'RECREATE')
     root_file.cd()
@@ -314,10 +314,9 @@ name,regressor = available_regressors[arguments.regressor]
 print('Regression with {}'.format(name))
 
 regressor.fit(train_predictors_std, targets)
-
 test_predictors_std = sc.transform(test_predictors)
-
 test.loc[:,met_pred_parameter] = regressor.predict(test_predictors_std)
+
 test.loc[:,met_reco_resolution] = (test[met_target_parameter] - test[met_reco_parameter]) \
     / test[met_target_parameter] * 100.0
 test.loc[:,met_pred_resolution] = (test[met_target_parameter] - test[met_pred_parameter]) \
