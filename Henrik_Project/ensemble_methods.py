@@ -314,7 +314,7 @@ if arguments.sample == 'all':
                                         arguments.trees,
                                         arguments.depth)
 else:
-    base_name = '{}_s{}_d{}_s{}'.format(arguments.regressor,
+    base_name = '{}_s{}_t{}_d{}'.format(arguments.regressor,
                                         arguments.sample,
                                         arguments.trees,
                                         arguments.depth)

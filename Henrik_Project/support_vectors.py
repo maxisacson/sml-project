@@ -55,13 +55,18 @@ parser.add_argument('-i',
                     type=int,
                     help='maximum number of iterations',
                     metavar='<maxiter>')
+parser.add_argument('-s',
+                    '--sample',
+                    default='all',
+                    help='the mass point of the sample to use or \'all\'',
+                    metavar='<sample>')
 parser.add_argument('-m',
                     '--matplotlib',
                     action='store_true',
                     help='plot using matplotlib')
 arguments = parser.parse_args()
 
-def plot_matplotlib(sample):
+def plot_matplotlib(sample, base_name):
     colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00']
 
     params = { 'figure.facecolor': 'white',
@@ -93,24 +98,12 @@ def plot_matplotlib(sample):
     ax[1].legend(loc='upper left')
 
     fig.tight_layout(pad=0.3)
-    fig.savefig('{}_C{}_g{}_e{}_d{}_i{}.pdf'.format(arguments.regressor,
-                                                    arguments.cost,
-                                                    arguments.gamma,
-                                                    arguments.epsilon,
-                                                    arguments.degree,
-                                                    arguments.iterations))
+    fig.savefig('{}.pdf'.format(base_name))
     plt.show()
 
 
 
-def plot_root(sample):
-    base_name = '{}_C{}_g{}_e{}_d{}_i{}'.format(arguments.regressor,
-                                                    arguments.cost,
-                                                    arguments.gamma,
-                                                    arguments.epsilon,
-                                                    arguments.degree,
-                                                    arguments.iterations)
-
+def plot_root(sample, base_name):
     met_pred, met_truth, met_reco, mt_pred, mt_reco = [
         TH1F(n, '', 100, 0, 500)
         for n
@@ -219,8 +212,15 @@ sample_400 = pd.read_csv('../test/mg5pythia8_hp400.root.test.csv')
 
 
 # Make a combined sample
-combined_sample = pd.concat((sample_200, sample_300, sample_400))
-dataset = combined_sample.sample(100000, random_state=1)
+if arguments.sample == 'all':
+    combined_sample = pd.concat((sample_200, sample_300, sample_400))
+    dataset = combined_sample.sample(100000, random_state=1)
+elif arguments.sample == '200':
+    dataset = sample_200
+elif arguments.sample == '300':
+    dataset = sample_300
+elif arguments.sample == '400':
+    dataset = sample_400
 
 # Replace invalid values with NaN
 dataset = dataset.where(dataset > -998.0, other=np.nan)
@@ -330,7 +330,23 @@ test.loc[:,mt_pred_parameter] = \
 print(test[[met_target_parameter, met_pred_parameter, met_reco_parameter]].head(10))
 print(test[[mt_pred_parameter, mt_reco_parameter]].head(10))
 
-if arguments.matplotlib:
-    plot_matplotlib(test)
+if arguments.sample == 'all':
+    base_name = '{}_C{}_g{}_e{}_d{}_i{}'.format(arguments.regressor,
+                                                arguments.cost,
+                                                arguments.gamma,
+                                                arguments.epsilon,
+                                                arguments.degree,
+                                                arguments.iterations)
 else:
-    plot_root(test)
+    base_name = '{}_s{}_C{}_g{}_e{}_d{}_i{}'.format(arguments.regressor,
+                                                    arguments.sample,
+                                                    arguments.cost,
+                                                    arguments.gamma,
+                                                    arguments.epsilon,
+                                                    arguments.degree,
+                                                    arguments.iterations)
+
+if arguments.matplotlib:
+    plot_matplotlib(test, base_name)
+else:
+    plot_root(test, base_name)
