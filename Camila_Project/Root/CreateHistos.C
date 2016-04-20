@@ -35,7 +35,7 @@ void CreateHistos::Loop()
         pt_neural_net->Fill(predicted_pTnu);
         res_neural_net->Fill(resolution_pred_pT);
         
-        profile_pred->Fill(pt_reco_tau1,ratio);
+        profile_pred->Fill(pt_mc_nuH,ratio);
         
         double mT= sqrt(2 * predicted_pTnu *pt_reco_tau1* (1 - TMath::Cos(phi_reco_tau1 - phi_met)));
         
@@ -45,7 +45,7 @@ void CreateHistos::Loop()
         
     }
     
-    TFile* output = new TFile("200GeV_Bayes.root","RECREATE");
+    TFile* output = new TFile("results/400GeV_Bayes.root","RECREATE");
     pt_neural_net->Write();
     res_neural_net->Write();
     profile_pred->Write();
