@@ -81,15 +81,16 @@ pred_resolution = 'pt(res pred nuH)'
 
 pd.set_option('display.max_columns', 500)
 sample_200 = pd.read_csv('../test/mg5pythia8_hp200.root.test3.csv')
-#sample_300 = pd.read_csv('../test/mg5pythia8_hp300.root.test.csv')
+sample_300 = pd.read_csv('../test/mg5pythia8_hp300.root.test.csv')
+sample_400 = pd.read_csv('../test/mg5pythia8_hp400.root.test.csv')
 
 
 # Make a combined sample
-#dataset = sample_200 + sample_300
-dataset = sample_200
+combined_sample = pd.concat((sample_200, sample_300, sample_400))
+dataset = combined_sample.sample(100000, random_state=1)
 
 # Replace invalid values with NaN
-dataset = dataset.where(dataset > -998.0, other=0)
+dataset = dataset.where(dataset > -998.0, other=np.nan)
 
 # Compute the H+ truth mass
 dataset['mass_truth'] = (
@@ -111,10 +112,16 @@ dataset[met_truth_parameter] = \
 #print(dataset.head(10)['mass_truth'])
 #print(dataset.describe())
 
-train, global_test = train_test_split(dataset,
-                                      test_size = 0.3,
-                                      random_state = 0)
-predictors = train[selected_predictors]
+# Prepare the training and test datasets
+train, test = train_test_split(dataset,
+                               test_size = 0.3,
+                               random_state = 0)
+# Select predictors
+train_predictors = train[selected_predictors]
+test_predictors = test[selected_predictors]
+# Drop rows with NaN values
+train_predictors.dropna()
+test_predictors.dropna()
 
 # Approximate MET truth with neutrino pT or use real MET truth
 target_parameter = pt_truth_parameter
@@ -158,9 +165,8 @@ available_regressors = {
 name,regressor = available_regressors[arguments.regressor]
 print('Regression with {}'.format(name))
 
-regressor.fit(predictors, targets)
+regressor.fit(train_predictors, targets)
 
-test = global_test.copy()
 test.loc[:,pred_parameter] = regressor.predict(test[selected_predictors])
 test.loc[:,reco_resolution] = (test[target_parameter] - test[reco_parameter]) \
     / test[target_parameter] * 100.0

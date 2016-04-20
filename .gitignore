@@ -3,8 +3,8 @@
 *.out
 *.bbl
 *.blg
-
 *.xml
+<<<<<<< HEAD
 
 .idea/sml-project.iml
 
@@ -13,3 +13,8 @@ Camila_Project/Root/.output_BayesRidge_200GeV.csv.swp
 Camila_Project/Root/CreateHistos2.C
 
 Camila_Project/Root/CreateHistos2.h
+=======
+.idea/*
+*.swp
+*.pyc
+>>>>>>> origin/master
