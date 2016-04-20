@@ -22,10 +22,10 @@ from argparse import ArgumentParser
 
 parser = ArgumentParser(description = 'Regression using ensemble methods')
 parser.add_argument('-r',
-                    '--regressors',
-                    nargs = '+',
-                    help='the regressors to use',
-                    metavar='<regressors>')
+                    '--regressor',
+                    required=True,
+                    help='the regressor to use',
+                    metavar='<regressor>')
 parser.add_argument('-d',
                     '--depth',
                     default=3,
@@ -72,7 +72,8 @@ selected_displays = [
     'mass_truth'
 ]
 
-target_parameter = 'pt(mc nuH)'
+pt_truth_parameter = 'pt(mc nuH)'
+met_truth_parameter = 'et(mc met)'
 reco_parameter = 'et(met)'
 pred_parameter = 'pt(pred nuH)'
 reco_resolution = 'et(res met)'
@@ -99,7 +100,14 @@ dataset['mass_truth'] = (
                - np.cos(dataset['phi(mc nuH)'] - dataset['phi(mc tau)'])))
 )
 
-print(dataset[selected_displays].head(10))
+dataset[met_truth_parameter] = \
+    np.sqrt(  dataset['pt(mc nuH)']**2
+            + dataset['pt(mc nuTau)']**2
+            + 2*dataset['pt(mc nuH)']*dataset['pt(mc nuTau)']
+            * np.cos(  dataset['phi(mc nuH)']
+                     - dataset['phi(mc nuTau)']))
+
+#print(dataset[selected_displays].head(10))
 #print(dataset.head(10)['mass_truth'])
 #print(dataset.describe())
 
@@ -107,19 +115,13 @@ train, global_test = train_test_split(dataset,
                                       test_size = 0.3,
                                       random_state = 0)
 predictors = train[selected_predictors]
+
+# Approximate MET truth with neutrino pT or use real MET truth
+target_parameter = pt_truth_parameter
+#target_parameter = met_truth_parameter
+
 targets = train[target_parameter]
 
-# Perform feature selection
-#selector = SelectKBest(f_classif, k=5)
-#selector.fit(selected_sample[predictors], selected_sample['pt(mc nuH)'])
-
-# Get the raw p-values for each feature, and transform from p-values into scores
-#scores = -np.log10(selector.pvalues_)
-
-# Plot the scores.
-#plt.bar(range(len(predictors)), scores)
-#plt.xticks(range(len(predictors)), predictors, rotation='vertical')
-#plt.show()
 
 available_regressors = {
     'decision_tree': (
@@ -153,57 +155,52 @@ available_regressors = {
     )
 }
 
-regressors = [
-    (k, v)
-    for k, v
-    in iteritems(available_regressors)
-    if k in arguments.regressors
-]
+name,regressor = available_regressors[arguments.regressor]
+print('Regression with {}'.format(name))
 
-for key,(name,regressor) in regressors:
-    print('Regression with {}'.format(name))
+regressor.fit(predictors, targets)
 
-    regressor.fit(predictors, targets)
+test = global_test.copy()
+test.loc[:,pred_parameter] = regressor.predict(test[selected_predictors])
+test.loc[:,reco_resolution] = (test[target_parameter] - test[reco_parameter]) \
+    / test[target_parameter] * 100.0
+test.loc[:,pred_resolution] = (test[target_parameter] - test[pred_parameter]) \
+    / test[target_parameter] * 100.0
 
-    test = global_test.copy()
-    test.loc[:,pred_parameter] = regressor.predict(test[selected_predictors])
-    test.loc[:,reco_resolution] = (test[target_parameter] - test[reco_parameter]) \
-        / test[target_parameter] * 100.0
-    test.loc[:,pred_resolution] = (test[target_parameter] - test[pred_parameter]) \
-        / test[target_parameter] * 100.0
+print(test[[target_parameter, pred_parameter, reco_parameter]].head(10))
 
-    print(test[[target_parameter, pred_parameter, reco_parameter]].head(10))
+colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00']
 
-    colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00']
+params = { 'figure.facecolor': 'white',
+           'figure.subplot.bottom': 0.0,
+           'font.size': 16, 
+           'legend.fontsize': 16,
+           'legend.borderpad': 0.2,
+           'legend.labelspacing': 0.2,
+           'legend.handlelength': 1.5,
+           'legend.handletextpad': 0.4,
+           'legend.borderaxespad': 0.2,
+           'lines.markeredgewidth': 2.0,
+           'lines.linewidth': 2.0,
+           'axes.prop_cycle': plt.cycler('color',colors)}
+plt.rcParams.update(params)
 
-    params = { 'figure.facecolor': 'white',
-               'figure.subplot.bottom': 0.0,
-               'font.size': 16, 
-               'legend.fontsize': 16,
-               'legend.borderpad': 0.2,
-               'legend.labelspacing': 0.2,
-               'legend.handlelength': 1.5,
-               'legend.handletextpad': 0.4,
-               'legend.borderaxespad': 0.2,
-               'lines.markeredgewidth': 2.0,
-               'lines.linewidth': 2.0,
-               'axes.prop_cycle': plt.cycler('color',colors)}
-    plt.rcParams.update(params)
+fig, ax = plt.subplots(2)
+ax[0].hist(test[pred_parameter], 50, range=(0.0, 400.0), label='Pred', histtype='step')
+ax[0].hist(test[reco_parameter], 50, range=(0.0, 400.0), label='Obs', histtype='step')
+ax[0].hist(test[target_parameter], 50, range=(0.0, 400.0), label='Target', histtype='step')
+ax[0].set_xlim([0,400])
+ax[0].set_xlabel("pT (GeV)")
+ax[0].legend(loc='upper right')
 
-    fig, ax = plt.subplots(2)
-    ax[0].hist(test[pred_parameter], 50, range=(0.0, 400.0), label='Pred', histtype='step')
-    ax[0].hist(test[reco_parameter], 50, range=(0.0, 400.0), label='Obs', histtype='step')
-    ax[0].hist(test[target_parameter], 50, range=(0.0, 400.0), label='Truth', histtype='step')
-    ax[0].set_xlim([0,400])
-    ax[0].set_xlabel("pT (GeV)")
-    ax[0].legend(loc='upper right')
+ax[1].hist(test[pred_resolution], 50, range=(-100.0, 100.0), label='Pred', histtype='step')
+ax[1].hist(test[reco_resolution], 50, range=(-100.0, 100.0), label='Obs', histtype='step')
+ax[1].set_xlim([-100,100])
+ax[1].set_xlabel("Resolution (%)")
+ax[1].legend(loc='upper left')
 
-    ax[1].hist(test[pred_resolution], 50, range=(-100.0, 100.0), label='Pred', histtype='step')
-    ax[1].hist(test[reco_resolution], 50, range=(-100.0, 100.0), label='Obs', histtype='step')
-    ax[1].set_xlim([-100,100])
-    ax[1].set_xlabel("Resolution (%)")
-    ax[1].legend(loc='upper left')
-
-    fig.tight_layout(pad=0.3)
-    fig.savefig('{}_{}_{}.pdf'.format(key, arguments.trees, arguments.depth))
-    plt.show()
+fig.tight_layout(pad=0.3)
+fig.savefig('{}_{}_{}.pdf'.format(arguments.regressor,
+                                  arguments.trees,
+                                  arguments.depth))
+plt.show()
