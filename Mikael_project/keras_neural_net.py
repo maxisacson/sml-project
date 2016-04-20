@@ -73,6 +73,7 @@ class NeuralNet:
             self.model.add( Activation(self.activations[i+1]) )
         self.model.add( Dense(output_dim=self.ntargets, init='glorot_uniform') )
         self.model.add( Activation("linear") )
+        # Use mean-square-error loss function and Nesteroc gradient descent
         sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
         self.model.compile(loss='mse', optimizer=sgd)
 
@@ -207,7 +208,13 @@ def main(argv):
                                                   - dataset["eta(mc tau)"])
                                           - np.cos(dataset["phi(mc nuH)"]
                                                    - dataset["phi(mc tau)"]))) )
-
+    dataset['met_truth'] = ( np.sqrt(  dataset['pt(mc nuH)']**2
+                                       + dataset['pt(mc nuTau)']**2
+                                       + 2*dataset['pt(mc nuH)']
+                                       *dataset['pt(mc nuTau)']
+                                       * np.cos(  dataset['phi(mc nuH)']
+                                                  - dataset['phi(mc nuTau)'])) )
+    
     # Replace invalid values with NaN
     dataset = dataset.where(dataset > -998.0, other=np.nan)
     # Predictor variables 
@@ -226,6 +233,7 @@ def main(argv):
     ntest = int(npts/kfolds)
     pt_pred_all = [None for i in range(kfolds)]
     pt_truth_all = [None for i in range(kfolds)]
+    pt_def_all = [None for i in range(kfolds)]
     met_all = [None for i in range(kfolds)]
     history_all = [None for i in range(kfolds)]
     res_pred_all = [None for i in range(kfolds)]
@@ -286,6 +294,7 @@ def main(argv):
 
         pt_pred  = np.array(nn.predictions)
         pt_truth = np.array(nn.test[train_var].as_matrix())
+        pt_def   = np.array(nn.test["pt(reco tau1)"].as_matrix())
         met      = np.array(nn.test["et(met)"].as_matrix().reshape(-1,1))
         met_phi  = np.array(nn.test["phi(met)"].as_matrix())
         taupt    = np.array(nn.test["pt(reco tau1)"].as_matrix())
@@ -307,6 +316,7 @@ def main(argv):
         
         pt_pred_all[i]  = [float(x) for x in pt_pred]
         pt_truth_all[i] = [float(x) for x in pt_truth]
+        pt_def_all[i] = [float(x) for x in pt_def]
         met_all[i]      = [float(x) for x in met]
         history_all[i]  = history['loss']
         res_pred_all[i] = [float(x) for x in res_predict]
@@ -316,10 +326,8 @@ def main(argv):
 
 
         
-        pt_pred_hist = ROOT.TH1F( "pt_neural_net", "Neural Network",
-                                   100, 0, 500 )
-        pt_truth_hist = ROOT.TH1F( "pt_default", "pt(mc nuH)",
-                                   100, 0, 500 )
+        pt_pred_hist = ROOT.TH1F( "pt_prediction", "", 100, 0, 500 )
+        pt_truth_hist = ROOT.TH1F( "pt_default", "", 100, 0, 500 )
         for x in nn.test[train_var[0]]:
             pt_pred_hist.Fill(float(x))
         for x in nn.predictions[train_var[0]]:
@@ -335,10 +343,8 @@ def main(argv):
         l1.Draw()
         c1.Print(base_ofile + '.pt.pdf')
   
-        mt_pred_hist = ROOT.TH1F( "mt_neural_net", "Neural Network",
-                                   100, 0, 500 )
-        mt_def_hist = ROOT.TH1F( "mt_default", "Default",
-                                   100, 0, 500 )
+        mt_pred_hist = ROOT.TH1F( "mt_prediction", "", 100, 0, 500 )
+        mt_def_hist = ROOT.TH1F( "mt_default", "", 100, 0, 500 )
         for x in mt_pred:
             mt_pred_hist.Fill(float(x))
         for x in mt_def:
@@ -391,11 +397,8 @@ def main(argv):
         # fig2.savefig(base_ofile + '.his.pdf')
         # plt.close(fig2)
         
-        res_pred_hist = ROOT.TH1F( "res_pred_hist",
-                                   "Neural Network;Resolution (%)",
-                                   100, -200, 200 )
-        res_def_hist = ROOT.TH1F( "res_truth_hist", "Default;Resolution (%)",
-                                  100, -200, 200 )
+        res_pred_hist = ROOT.TH1F( "res_pred_hist", "", 100, -200, 200 )
+        res_def_hist = ROOT.TH1F( "res_def_hist", "", 100, -200, 200 )
         for x in res_predict:
             res_pred_hist.Fill(float(x))
         for x in res_default:
@@ -440,25 +443,30 @@ def main(argv):
                                                   npts,
                                                   n_epochs, 'all' )
 
-    predplot = [x for x in [y for y in pt_pred_all]][0]
-    truthplot = [x for x in [y for y in pt_truth_all]][0]
+    ptpredplot = [x for x in [y for y in pt_pred_all]][0]
+    pttruthplot = [x for x in [y for y in pt_truth_all]][0]
+    ptdefplot = [x for x in [y for y in pt_def_all]][0]
 
-    pt_pred_hist = ROOT.TH1F( "pt_pred_hist_all", "Neural Network",
-                              100, 0, 500 )
-    pt_truth_hist = ROOT.TH1F( "pt_truth_hist_all", "pt(mc nuH)",
-                               100, 0, 500 )
-    for x in predplot:
+    pt_pred_hist = ROOT.TH1F( "pt_pred_hist_all", "", 100, 0, 500 )
+    pt_truth_hist = ROOT.TH1F( "pt_truth_hist_all", "", 100, 0, 500 )
+    pt_def_hist = ROOT.TH1F( "pt_truth_hist_all", "", 100, 0, 500 )
+    for x in ptpredplot:
         pt_pred_hist.Fill(float(x))
-    for x in truthplot:
+    for x in pttruthplot:
         pt_truth_hist.Fill(float(x))
+    for x in ptdefplot:
+        pt_def_hist.Fill(float(x))
     pt_pred_hist.SetLineColor(1)
     pt_truth_hist.SetLineColor(2)
+    pt_def_hist.SetLineColor(3)
     c1 = ROOT.TCanvas("c1")
     pt_pred_hist.Draw()
     pt_truth_hist.Draw("same")
+    pt_def_hist.Draw("same")
     l1 = ROOT.TLegend(0.7, 0.7, 0.9, 0.85)
     l1.AddEntry(pt_pred_hist, "Neural Network", "l")
     l1.AddEntry(pt_truth_hist, "pt(mc nuH)", "l")
+    l1.AddEntry(pt_def_hist, "pt(reco nuH)", "l")
     l1.Draw()
     c1.Print(base_ofile + '.pt.pdf')
     
@@ -466,11 +474,11 @@ def main(argv):
     # binranges = np.linspace(0, 300, 50)
     # fig1, ax1 = plt.subplots(1)
     # metplot = [x for x in [y for y in met_all]][0]
-    # ax1.hist( truthplot, bins=binranges,
+    # ax1.hist( pttruthplot, bins=binranges,
     #           label='Truth', histtype='step' )
     # ax1.hist( metplot, bins=binranges,
     #           label='MET', histtype='step' )
-    # ax1.hist( predplot, bins=binranges,
+    # ax1.hist( ptpredplot, bins=binranges,
     #           label='Pred', histtype='step' )
     # # ax1.set_xlim( [ min([i]),
     # #                    max(nn.test[train_var])  ] )
@@ -495,12 +503,8 @@ def main(argv):
     respredplot = [x for x in [y for y in res_pred_all]][0]
     resdefplot = [x for x in [y for y in res_def_all]][0]
 
-    res_pred_hist = ROOT.TH1F( "res_pred_hist_all",
-                               "Neural Network;Resolution (%)",
-                               100, -200, 200 )
-    res_def_hist = ROOT.TH1F( "res_truth_hist_all",
-                              "Default;Resolution (%)",
-                              100, -200, 200 )
+    res_pred_hist = ROOT.TH1F( "res_pred_hist_all", "", 100, -200, 200 )
+    res_def_hist = ROOT.TH1F( "res_def_hist_all", "", 100, -200, 200 )
     for x in respredplot:
         res_pred_hist.Fill(float(x))
     for x in resdefplot:
@@ -531,12 +535,8 @@ def main(argv):
     mtpredplot = [x for x in [y for y in mt_pred_all]][0]
     mtdefplot = [x for x in [y for y in mt_def_all]][0]
 
-    mt_pred_hist = ROOT.TH1F( "mt_neural_net",
-                               "Neural Network;mt (GeV)",
-                               100, 0, 500 )
-    mt_def_hist = ROOT.TH1F( "mt_default",
-                              "Default;mt (GeV)",
-                              100, 0, 500 )
+    mt_pred_hist = ROOT.TH1F( "mt_prediction", "", 100, 0, 500 )
+    mt_def_hist = ROOT.TH1F( "mt_default", "", 100, 0, 500 )
     for x in mtpredplot:
         mt_pred_hist.Fill(float(x))
     for x in mtdefplot:
@@ -552,12 +552,45 @@ def main(argv):
     l4.Draw()
     c4.Print(base_ofile + '.mt.pdf')
 
+    prof_pred_hist = ROOT.TProfile( "profile_prediction", "",
+                                    100, 0, 500, 0, 3 )
+    prof_def_hist = ROOT.TProfile( "profile_default", "",
+                                   100, 0, 500, 0, 3 )
+    prof_truth_hist = ROOT.TProfile( "profile_truth", "",
+                                     100, 0, 500, 0, 3 )
+    for x,t in zip(ptpredplot, pttruthplot):
+        prof_pred_hist.Fill(float(t), float(x)/float(t))
+    for x,t in zip(ptdefplot, pttruthplot):
+        prof_def_hist.Fill(float(t), float(x)/float(t))
+    for x,t in zip(dataset['met_truth'].as_matrix(), pttruthplot):
+        prof_truth_hist.Fill(float(t), float(x)/float(t))
+    prof_pred_hist.SetLineColor(1)
+    prof_def_hist.SetLineColor(2)
+    prof_truth_hist.SetLineColor(3)
+    prof_pred_hist.SetMarkerColor(1)
+    prof_def_hist.SetMarkerColor(2)
+    prof_truth_hist.SetMarkerColor(3)
+    c5 = ROOT.TCanvas("c5")
+    prof_pred_hist.Draw()
+    prof_def_hist.Draw("same")
+    prof_truth_hist.Draw("same")
+    l5 = ROOT.TLegend(0.7, 0.7, 0.9, 0.85)
+    l5.AddEntry(prof_pred_hist, "Neural Network", "l")
+    l5.AddEntry(prof_def_hist, "Default", "l")
+    l5.AddEntry(prof_truth_hist, "Truth", "l")
+    l5.Draw()
+    c5.Print(base_ofile + '.prof.pdf')
+
     pt_truth_hist.Write()
     pt_pred_hist.Write()
+    pt_def_hist.Write()
     res_pred_hist.Write()
     res_def_hist.Write()
     mt_pred_hist.Write()
     mt_def_hist.Write()
+    prof_pred_hist.Write()
+    prof_def_hist.Write()
+    prof_truth_hist.Write()
 
     ofile.Close()
 
