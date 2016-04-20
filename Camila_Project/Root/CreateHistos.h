@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Wed Apr 20 09:33:53 2016 by ROOT version 6.07/03
+// Wed Apr 20 10:28:32 2016 by ROOT version 6.07/03
 // from TTree ntuple/data from ascii file
 // found on file: output_BayesRidge_200GeV.root
 //////////////////////////////////////////////////////////
@@ -20,67 +20,114 @@ public :
    Int_t           fCurrent; //!current Tree number in a TChain
 
 // Fixed size dimensions of array or collections stored in the TTree if any.
+   const Int_t kMaxeta_mc_h = 1;
+   const Int_t kMaxphi_mc_h = 1;
+   const Int_t kMaxe_mc_h = 1;
+   const Int_t kMaxpt_mc_tau = 1;
+   const Int_t kMaxeta_mc_tau = 1;
+   const Int_t kMaxphi_mc_tau = 1;
+   const Int_t kMaxe_mc_tau = 1;
+   const Int_t kMaxeta_mc_nuH = 1;
+   const Int_t kMaxphi_mc_nuH = 1;
+   const Int_t kMaxe_mc_nuH = 1;
+   const Int_t kMaxeta_mc_nuTau = 1;
+   const Int_t kMaxphi_mc_nuTau = 1;
+   const Int_t kMaxe_mc_nuTau = 1;
+   const Int_t kMaxeta_reco_tau1 = 1;
+   const Int_t kMaxm_reco_tau1 = 1;
+   const Int_t kMaxpt_reco_bjet1 = 1;
+   const Int_t kMaxeta_reco_bjet1 = 1;
+   const Int_t kMaxphi_reco_bjet1 = 1;
+   const Int_t kMaxm_reco_bjet1 = 1;
+   const Int_t kMaxpt_reco_bjet2 = 1;
+   const Int_t kMaxeta_reco_bjet2 = 1;
+   const Int_t kMaxphi_reco_bjet2 = 1;
+   const Int_t kMaxm_reco_bjet2 = 1;
+   const Int_t kMaxpt_reco_bjet3 = 1;
+   const Int_t kMaxeta_reco_bjet3 = 1;
+   const Int_t kMaxphi_reco_bjet3 = 1;
+   const Int_t kMaxm_reco_bjet3 = 1;
+   const Int_t kMaxpt_reco_bjet4 = 1;
+   const Int_t kMaxeta_reco_bjet4 = 1;
+   const Int_t kMaxphi_reco_bjet4 = 1;
+   const Int_t kMaxm_reco_bjet4 = 1;
+   const Int_t kMaxpt_reco_jet1 = 1;
+   const Int_t kMaxeta_reco_jet1 = 1;
+   const Int_t kMaxphi_reco_jet1 = 1;
+   const Int_t kMaxm_reco_jet1 = 1;
+   const Int_t kMaxpt_reco_jet2 = 1;
+   const Int_t kMaxeta_reco_jet2 = 1;
+   const Int_t kMaxphi_reco_jet2 = 1;
+   const Int_t kMaxm_reco_jet2 = 1;
+   const Int_t kMaxpt_reco_jet3 = 1;
+   const Int_t kMaxeta_reco_jet3 = 1;
+   const Int_t kMaxphi_reco_jet3 = 1;
+   const Int_t kMaxm_reco_jet3 = 1;
+   const Int_t kMaxpt_reco_jet4 = 1;
+   const Int_t kMaxeta_reco_jet4 = 1;
+   const Int_t kMaxphi_reco_jet4 = 1;
+   const Int_t kMaxm_reco_jet4 = 1;
 
    // Declaration of leaf types
-   Float_t         #;
+   Float_t         number;
    Float_t         eventNumber;
-   Float_t         pt(mc h+);
-   Float_t         eta(mc h+);
-   Float_t         phi(mc h+);
-   Float_t         e(mc h+);
-   Float_t         pt(mc tau);
-   Float_t         eta(mc tau);
-   Float_t         phi(mc tau);
-   Float_t         e(mc tau);
-   Float_t         pt(mc nuH);
-   Float_t         eta(mc nuH);
-   Float_t         phi(mc nuH);
-   Float_t         e(mc nuH);
-   Float_t         pt(mc nuTau);
-   Float_t         eta(mc nuTau);
-   Float_t         phi(mc nuTau);
-   Float_t         e(mc nuTau);
-   Float_t         et(met);
-   Float_t         phi(met);
+   Float_t         pt_mc_h;
+   Float_t         eta_mc_h_;
+   Float_t         phi_mc_h_;
+   Float_t         e_mc_h_;
+   Float_t         pt_mc_tau_;
+   Float_t         eta_mc_tau_;
+   Float_t         phi_mc_tau_;
+   Float_t         e_mc_tau_;
+   Float_t         pt_mc_nuH;
+   Float_t         eta_mc_nuH_;
+   Float_t         phi_mc_nuH_;
+   Float_t         e_mc_nuH_;
+   Float_t         pt_mc_nuTau;
+   Float_t         eta_mc_nuTau_;
+   Float_t         phi_mc_nuTau_;
+   Float_t         e_mc_nuTau_;
+   Float_t         et_met;
+   Float_t         phi_met;
    Float_t         ntau;
    Float_t         nbjet;
    Float_t         njet;
-   Float_t         pt(reco tau1);
-   Float_t         eta(reco tau1);
-   Float_t         phi(reco tau1);
-   Float_t         m(reco tau1);
-   Float_t         pt(reco bjet1);
-   Float_t         eta(reco bjet1);
-   Float_t         phi(reco bjet1);
-   Float_t         m(reco bjet1);
-   Float_t         pt(reco bjet2);
-   Float_t         eta(reco bjet2);
-   Float_t         phi(reco bjet2);
-   Float_t         m(reco bjet2);
-   Float_t         pt(reco bjet3);
-   Float_t         eta(reco bjet3);
-   Float_t         phi(reco bjet3);
-   Float_t         m(reco bjet3);
-   Float_t         pt(reco bjet4);
-   Float_t         eta(reco bjet4);
-   Float_t         phi(reco bjet4);
-   Float_t         m(reco bjet4);
-   Float_t         pt(reco jet1);
-   Float_t         eta(reco jet1);
-   Float_t         phi(reco jet1);
-   Float_t         m(reco jet1);
-   Float_t         pt(reco jet2);
-   Float_t         eta(reco jet2);
-   Float_t         phi(reco jet2);
-   Float_t         m(reco jet2);
-   Float_t         pt(reco jet3);
-   Float_t         eta(reco jet3);
-   Float_t         phi(reco jet3);
-   Float_t         m(reco jet3);
-   Float_t         pt(reco jet4);
-   Float_t         eta(reco jet4);
-   Float_t         phi(reco jet4);
-   Float_t         m(reco jet4);
+   Float_t         pt_reco_tau1;
+   Float_t         eta_reco_tau1_;
+   Float_t         phi_reco_tau1;
+   Float_t         m_reco_tau1_;
+   Float_t         pt_reco_bjet1_;
+   Float_t         eta_reco_bjet1_;
+   Float_t         phi_reco_bjet1_;
+   Float_t         m_reco_bjet1_;
+   Float_t         pt_reco_bjet2_;
+   Float_t         eta_reco_bjet2_;
+   Float_t         phi_reco_bjet2_;
+   Float_t         m_reco_bjet2_;
+   Float_t         pt_reco_bjet3_;
+   Float_t         eta_reco_bjet3_;
+   Float_t         phi_reco_bjet3_;
+   Float_t         m_reco_bjet3_;
+   Float_t         pt_reco_bjet4_;
+   Float_t         eta_reco_bjet4_;
+   Float_t         phi_reco_bjet4_;
+   Float_t         m_reco_bjet4_;
+   Float_t         pt_reco_jet1_;
+   Float_t         eta_reco_jet1_;
+   Float_t         phi_reco_jet1_;
+   Float_t         m_reco_jet1_;
+   Float_t         pt_reco_jet2_;
+   Float_t         eta_reco_jet2_;
+   Float_t         phi_reco_jet2_;
+   Float_t         m_reco_jet2_;
+   Float_t         pt_reco_jet3_;
+   Float_t         eta_reco_jet3_;
+   Float_t         phi_reco_jet3_;
+   Float_t         m_reco_jet3_;
+   Float_t         pt_reco_jet4_;
+   Float_t         eta_reco_jet4_;
+   Float_t         phi_reco_jet4_;
+   Float_t         m_reco_jet4_;
    Float_t         unnamed;
    Float_t         truth_met;
    Float_t         predicted_pTnu;
@@ -88,65 +135,65 @@ public :
    Float_t         resolution_default_pT;
 
    // List of branches
-   TBranch        *b_#;   //!
+   TBranch        *b_number;   //!
    TBranch        *b_eventNumber;   //!
-   TBranch        *b_pt(mc h+);   //!
-   TBranch        *b_eta(mc h+);   //!
-   TBranch        *b_phi(mc h+);   //!
-   TBranch        *b_e(mc h+);   //!
-   TBranch        *b_pt(mc tau);   //!
-   TBranch        *b_eta(mc tau);   //!
-   TBranch        *b_phi(mc tau);   //!
-   TBranch        *b_e(mc tau);   //!
-   TBranch        *b_pt(mc nuH);   //!
-   TBranch        *b_eta(mc nuH);   //!
-   TBranch        *b_phi(mc nuH);   //!
-   TBranch        *b_e(mc nuH);   //!
-   TBranch        *b_pt(mc nuTau);   //!
-   TBranch        *b_eta(mc nuTau);   //!
-   TBranch        *b_phi(mc nuTau);   //!
-   TBranch        *b_e(mc nuTau);   //!
-   TBranch        *b_et(met);   //!
-   TBranch        *b_phi(met);   //!
+   TBranch        *b_pt_mc_h;   //!
+   TBranch        *b_eta_mc_h_;   //!
+   TBranch        *b_phi_mc_h_;   //!
+   TBranch        *b_e_mc_h_;   //!
+   TBranch        *b_pt_mc_tau_;   //!
+   TBranch        *b_eta_mc_tau_;   //!
+   TBranch        *b_phi_mc_tau_;   //!
+   TBranch        *b_e_mc_tau_;   //!
+   TBranch        *b_pt_mc_nuH;   //!
+   TBranch        *b_eta_mc_nuH_;   //!
+   TBranch        *b_phi_mc_nuH_;   //!
+   TBranch        *b_e_mc_nuH_;   //!
+   TBranch        *b_pt_mc_nuTau;   //!
+   TBranch        *b_eta_mc_nuTau_;   //!
+   TBranch        *b_phi_mc_nuTau_;   //!
+   TBranch        *b_e_mc_nuTau_;   //!
+   TBranch        *b_et_met;   //!
+   TBranch        *b_phi_met;   //!
    TBranch        *b_ntau;   //!
    TBranch        *b_nbjet;   //!
    TBranch        *b_njet;   //!
-   TBranch        *b_pt(reco tau1);   //!
-   TBranch        *b_eta(reco tau1);   //!
-   TBranch        *b_phi(reco tau1);   //!
-   TBranch        *b_m(reco tau1);   //!
-   TBranch        *b_pt(reco bjet1);   //!
-   TBranch        *b_eta(reco bjet1);   //!
-   TBranch        *b_phi(reco bjet1);   //!
-   TBranch        *b_m(reco bjet1);   //!
-   TBranch        *b_pt(reco bjet2);   //!
-   TBranch        *b_eta(reco bjet2);   //!
-   TBranch        *b_phi(reco bjet2);   //!
-   TBranch        *b_m(reco bjet2);   //!
-   TBranch        *b_pt(reco bjet3);   //!
-   TBranch        *b_eta(reco bjet3);   //!
-   TBranch        *b_phi(reco bjet3);   //!
-   TBranch        *b_m(reco bjet3);   //!
-   TBranch        *b_pt(reco bjet4);   //!
-   TBranch        *b_eta(reco bjet4);   //!
-   TBranch        *b_phi(reco bjet4);   //!
-   TBranch        *b_m(reco bjet4);   //!
-   TBranch        *b_pt(reco jet1);   //!
-   TBranch        *b_eta(reco jet1);   //!
-   TBranch        *b_phi(reco jet1);   //!
-   TBranch        *b_m(reco jet1);   //!
-   TBranch        *b_pt(reco jet2);   //!
-   TBranch        *b_eta(reco jet2);   //!
-   TBranch        *b_phi(reco jet2);   //!
-   TBranch        *b_m(reco jet2);   //!
-   TBranch        *b_pt(reco jet3);   //!
-   TBranch        *b_eta(reco jet3);   //!
-   TBranch        *b_phi(reco jet3);   //!
-   TBranch        *b_m(reco jet3);   //!
-   TBranch        *b_pt(reco jet4);   //!
-   TBranch        *b_eta(reco jet4);   //!
-   TBranch        *b_phi(reco jet4);   //!
-   TBranch        *b_m(reco jet4);   //!
+   TBranch        *b_pt_reco_tau1;   //!
+   TBranch        *b_eta_reco_tau1_;   //!
+   TBranch        *b_phi_reco_tau1;   //!
+   TBranch        *b_m_reco_tau1_;   //!
+   TBranch        *b_pt_reco_bjet1_;   //!
+   TBranch        *b_eta_reco_bjet1_;   //!
+   TBranch        *b_phi_reco_bjet1_;   //!
+   TBranch        *b_m_reco_bjet1_;   //!
+   TBranch        *b_pt_reco_bjet2_;   //!
+   TBranch        *b_eta_reco_bjet2_;   //!
+   TBranch        *b_phi_reco_bjet2_;   //!
+   TBranch        *b_m_reco_bjet2_;   //!
+   TBranch        *b_pt_reco_bjet3_;   //!
+   TBranch        *b_eta_reco_bjet3_;   //!
+   TBranch        *b_phi_reco_bjet3_;   //!
+   TBranch        *b_m_reco_bjet3_;   //!
+   TBranch        *b_pt_reco_bjet4_;   //!
+   TBranch        *b_eta_reco_bjet4_;   //!
+   TBranch        *b_phi_reco_bjet4_;   //!
+   TBranch        *b_m_reco_bjet4_;   //!
+   TBranch        *b_pt_reco_jet1_;   //!
+   TBranch        *b_eta_reco_jet1_;   //!
+   TBranch        *b_phi_reco_jet1_;   //!
+   TBranch        *b_m_reco_jet1_;   //!
+   TBranch        *b_pt_reco_jet2_;   //!
+   TBranch        *b_eta_reco_jet2_;   //!
+   TBranch        *b_phi_reco_jet2_;   //!
+   TBranch        *b_m_reco_jet2_;   //!
+   TBranch        *b_pt_reco_jet3_;   //!
+   TBranch        *b_eta_reco_jet3_;   //!
+   TBranch        *b_phi_reco_jet3_;   //!
+   TBranch        *b_m_reco_jet3_;   //!
+   TBranch        *b_pt_reco_jet4_;   //!
+   TBranch        *b_eta_reco_jet4_;   //!
+   TBranch        *b_phi_reco_jet4_;   //!
+   TBranch        *b_m_reco_jet4_;   //!
    TBranch        *b_unnamed;   //!
    TBranch        *b_truth_met;   //!
    TBranch        *b_predicted_pTnu;   //!
@@ -223,65 +270,65 @@ void CreateHistos::Init(TTree *tree)
    fCurrent = -1;
    fChain->SetMakeClass(1);
 
-   fChain->SetBranchAddress("#", &#, &b_#);
+   fChain->SetBranchAddress("number", &number, &b_number);
    fChain->SetBranchAddress("eventNumber", &eventNumber, &b_eventNumber);
-   fChain->SetBranchAddress("pt(mc h+)", &pt(mc h+), &b_pt(mc h+));
-   fChain->SetBranchAddress("eta(mc h+)", &eta(mc h+), &b_eta(mc h+));
-   fChain->SetBranchAddress("phi(mc h+)", &phi(mc h+), &b_phi(mc h+));
-   fChain->SetBranchAddress("e(mc h+)", &e(mc h+), &b_e(mc h+));
-   fChain->SetBranchAddress("pt(mc tau)", &pt(mc tau), &b_pt(mc tau));
-   fChain->SetBranchAddress("eta(mc tau)", &eta(mc tau), &b_eta(mc tau));
-   fChain->SetBranchAddress("phi(mc tau)", &phi(mc tau), &b_phi(mc tau));
-   fChain->SetBranchAddress("e(mc tau)", &e(mc tau), &b_e(mc tau));
-   fChain->SetBranchAddress("pt(mc nuH)", &pt(mc nuH), &b_pt(mc nuH));
-   fChain->SetBranchAddress("eta(mc nuH)", &eta(mc nuH), &b_eta(mc nuH));
-   fChain->SetBranchAddress("phi(mc nuH)", &phi(mc nuH), &b_phi(mc nuH));
-   fChain->SetBranchAddress("e(mc nuH)", &e(mc nuH), &b_e(mc nuH));
-   fChain->SetBranchAddress("pt(mc nuTau)", &pt(mc nuTau), &b_pt(mc nuTau));
-   fChain->SetBranchAddress("eta(mc nuTau)", &eta(mc nuTau), &b_eta(mc nuTau));
-   fChain->SetBranchAddress("phi(mc nuTau)", &phi(mc nuTau), &b_phi(mc nuTau));
-   fChain->SetBranchAddress("e(mc nuTau)", &e(mc nuTau), &b_e(mc nuTau));
-   fChain->SetBranchAddress("et(met)", &et(met), &b_et(met));
-   fChain->SetBranchAddress("phi(met)", &phi(met), &b_phi(met));
+   fChain->SetBranchAddress("pt_mc_h", &pt_mc_h, &b_pt_mc_h);
+   fChain->SetBranchAddress("eta_mc_h_", &eta_mc_h_, &b_eta_mc_h_);
+   fChain->SetBranchAddress("phi_mc_h_", &phi_mc_h_, &b_phi_mc_h_);
+   fChain->SetBranchAddress("e_mc_h_", &e_mc_h_, &b_e_mc_h_);
+   fChain->SetBranchAddress("pt_mc_tau_", &pt_mc_tau_, &b_pt_mc_tau_);
+   fChain->SetBranchAddress("eta_mc_tau_", &eta_mc_tau_, &b_eta_mc_tau_);
+   fChain->SetBranchAddress("phi_mc_tau_", &phi_mc_tau_, &b_phi_mc_tau_);
+   fChain->SetBranchAddress("e_mc_tau_", &e_mc_tau_, &b_e_mc_tau_);
+   fChain->SetBranchAddress("pt_mc_nuH", &pt_mc_nuH, &b_pt_mc_nuH);
+   fChain->SetBranchAddress("eta_mc_nuH_", &eta_mc_nuH_, &b_eta_mc_nuH_);
+   fChain->SetBranchAddress("phi_mc_nuH_", &phi_mc_nuH_, &b_phi_mc_nuH_);
+   fChain->SetBranchAddress("e_mc_nuH_", &e_mc_nuH_, &b_e_mc_nuH_);
+   fChain->SetBranchAddress("pt_mc_nuTau", &pt_mc_nuTau, &b_pt_mc_nuTau);
+   fChain->SetBranchAddress("eta_mc_nuTau_", &eta_mc_nuTau_, &b_eta_mc_nuTau_);
+   fChain->SetBranchAddress("phi_mc_nuTau_", &phi_mc_nuTau_, &b_phi_mc_nuTau_);
+   fChain->SetBranchAddress("e_mc_nuTau_", &e_mc_nuTau_, &b_e_mc_nuTau_);
+   fChain->SetBranchAddress("et_met", &et_met, &b_et_met);
+   fChain->SetBranchAddress("phi_met", &phi_met, &b_phi_met);
    fChain->SetBranchAddress("ntau", &ntau, &b_ntau);
    fChain->SetBranchAddress("nbjet", &nbjet, &b_nbjet);
    fChain->SetBranchAddress("njet", &njet, &b_njet);
-   fChain->SetBranchAddress("pt(reco tau1)", &pt(reco tau1), &b_pt(reco tau1));
-   fChain->SetBranchAddress("eta(reco tau1)", &eta(reco tau1), &b_eta(reco tau1));
-   fChain->SetBranchAddress("phi(reco tau1)", &phi(reco tau1), &b_phi(reco tau1));
-   fChain->SetBranchAddress("m(reco tau1)", &m(reco tau1), &b_m(reco tau1));
-   fChain->SetBranchAddress("pt(reco bjet1)", &pt(reco bjet1), &b_pt(reco bjet1));
-   fChain->SetBranchAddress("eta(reco bjet1)", &eta(reco bjet1), &b_eta(reco bjet1));
-   fChain->SetBranchAddress("phi(reco bjet1)", &phi(reco bjet1), &b_phi(reco bjet1));
-   fChain->SetBranchAddress("m(reco bjet1)", &m(reco bjet1), &b_m(reco bjet1));
-   fChain->SetBranchAddress("pt(reco bjet2)", &pt(reco bjet2), &b_pt(reco bjet2));
-   fChain->SetBranchAddress("eta(reco bjet2)", &eta(reco bjet2), &b_eta(reco bjet2));
-   fChain->SetBranchAddress("phi(reco bjet2)", &phi(reco bjet2), &b_phi(reco bjet2));
-   fChain->SetBranchAddress("m(reco bjet2)", &m(reco bjet2), &b_m(reco bjet2));
-   fChain->SetBranchAddress("pt(reco bjet3)", &pt(reco bjet3), &b_pt(reco bjet3));
-   fChain->SetBranchAddress("eta(reco bjet3)", &eta(reco bjet3), &b_eta(reco bjet3));
-   fChain->SetBranchAddress("phi(reco bjet3)", &phi(reco bjet3), &b_phi(reco bjet3));
-   fChain->SetBranchAddress("m(reco bjet3)", &m(reco bjet3), &b_m(reco bjet3));
-   fChain->SetBranchAddress("pt(reco bjet4)", &pt(reco bjet4), &b_pt(reco bjet4));
-   fChain->SetBranchAddress("eta(reco bjet4)", &eta(reco bjet4), &b_eta(reco bjet4));
-   fChain->SetBranchAddress("phi(reco bjet4)", &phi(reco bjet4), &b_phi(reco bjet4));
-   fChain->SetBranchAddress("m(reco bjet4)", &m(reco bjet4), &b_m(reco bjet4));
-   fChain->SetBranchAddress("pt(reco jet1)", &pt(reco jet1), &b_pt(reco jet1));
-   fChain->SetBranchAddress("eta(reco jet1)", &eta(reco jet1), &b_eta(reco jet1));
-   fChain->SetBranchAddress("phi(reco jet1)", &phi(reco jet1), &b_phi(reco jet1));
-   fChain->SetBranchAddress("m(reco jet1)", &m(reco jet1), &b_m(reco jet1));
-   fChain->SetBranchAddress("pt(reco jet2)", &pt(reco jet2), &b_pt(reco jet2));
-   fChain->SetBranchAddress("eta(reco jet2)", &eta(reco jet2), &b_eta(reco jet2));
-   fChain->SetBranchAddress("phi(reco jet2)", &phi(reco jet2), &b_phi(reco jet2));
-   fChain->SetBranchAddress("m(reco jet2)", &m(reco jet2), &b_m(reco jet2));
-   fChain->SetBranchAddress("pt(reco jet3)", &pt(reco jet3), &b_pt(reco jet3));
-   fChain->SetBranchAddress("eta(reco jet3)", &eta(reco jet3), &b_eta(reco jet3));
-   fChain->SetBranchAddress("phi(reco jet3)", &phi(reco jet3), &b_phi(reco jet3));
-   fChain->SetBranchAddress("m(reco jet3)", &m(reco jet3), &b_m(reco jet3));
-   fChain->SetBranchAddress("pt(reco jet4)", &pt(reco jet4), &b_pt(reco jet4));
-   fChain->SetBranchAddress("eta(reco jet4)", &eta(reco jet4), &b_eta(reco jet4));
-   fChain->SetBranchAddress("phi(reco jet4)", &phi(reco jet4), &b_phi(reco jet4));
-   fChain->SetBranchAddress("m(reco jet4)", &m(reco jet4), &b_m(reco jet4));
+   fChain->SetBranchAddress("pt_reco_tau1", &pt_reco_tau1, &b_pt_reco_tau1);
+   fChain->SetBranchAddress("eta_reco_tau1_", &eta_reco_tau1_, &b_eta_reco_tau1_);
+   fChain->SetBranchAddress("phi_reco_tau1", &phi_reco_tau1, &b_phi_reco_tau1);
+   fChain->SetBranchAddress("m_reco_tau1_", &m_reco_tau1_, &b_m_reco_tau1_);
+   fChain->SetBranchAddress("pt_reco_bjet1_", &pt_reco_bjet1_, &b_pt_reco_bjet1_);
+   fChain->SetBranchAddress("eta_reco_bjet1_", &eta_reco_bjet1_, &b_eta_reco_bjet1_);
+   fChain->SetBranchAddress("phi_reco_bjet1_", &phi_reco_bjet1_, &b_phi_reco_bjet1_);
+   fChain->SetBranchAddress("m_reco_bjet1_", &m_reco_bjet1_, &b_m_reco_bjet1_);
+   fChain->SetBranchAddress("pt_reco_bjet2_", &pt_reco_bjet2_, &b_pt_reco_bjet2_);
+   fChain->SetBranchAddress("eta_reco_bjet2_", &eta_reco_bjet2_, &b_eta_reco_bjet2_);
+   fChain->SetBranchAddress("phi_reco_bjet2_", &phi_reco_bjet2_, &b_phi_reco_bjet2_);
+   fChain->SetBranchAddress("m_reco_bjet2_", &m_reco_bjet2_, &b_m_reco_bjet2_);
+   fChain->SetBranchAddress("pt_reco_bjet3_", &pt_reco_bjet3_, &b_pt_reco_bjet3_);
+   fChain->SetBranchAddress("eta_reco_bjet3_", &eta_reco_bjet3_, &b_eta_reco_bjet3_);
+   fChain->SetBranchAddress("phi_reco_bjet3_", &phi_reco_bjet3_, &b_phi_reco_bjet3_);
+   fChain->SetBranchAddress("m_reco_bjet3_", &m_reco_bjet3_, &b_m_reco_bjet3_);
+   fChain->SetBranchAddress("pt_reco_bjet4_", &pt_reco_bjet4_, &b_pt_reco_bjet4_);
+   fChain->SetBranchAddress("eta_reco_bjet4_", &eta_reco_bjet4_, &b_eta_reco_bjet4_);
+   fChain->SetBranchAddress("phi_reco_bjet4_", &phi_reco_bjet4_, &b_phi_reco_bjet4_);
+   fChain->SetBranchAddress("m_reco_bjet4_", &m_reco_bjet4_, &b_m_reco_bjet4_);
+   fChain->SetBranchAddress("pt_reco_jet1_", &pt_reco_jet1_, &b_pt_reco_jet1_);
+   fChain->SetBranchAddress("eta_reco_jet1_", &eta_reco_jet1_, &b_eta_reco_jet1_);
+   fChain->SetBranchAddress("phi_reco_jet1_", &phi_reco_jet1_, &b_phi_reco_jet1_);
+   fChain->SetBranchAddress("m_reco_jet1_", &m_reco_jet1_, &b_m_reco_jet1_);
+   fChain->SetBranchAddress("pt_reco_jet2_", &pt_reco_jet2_, &b_pt_reco_jet2_);
+   fChain->SetBranchAddress("eta_reco_jet2_", &eta_reco_jet2_, &b_eta_reco_jet2_);
+   fChain->SetBranchAddress("phi_reco_jet2_", &phi_reco_jet2_, &b_phi_reco_jet2_);
+   fChain->SetBranchAddress("m_reco_jet2_", &m_reco_jet2_, &b_m_reco_jet2_);
+   fChain->SetBranchAddress("pt_reco_jet3_", &pt_reco_jet3_, &b_pt_reco_jet3_);
+   fChain->SetBranchAddress("eta_reco_jet3_", &eta_reco_jet3_, &b_eta_reco_jet3_);
+   fChain->SetBranchAddress("phi_reco_jet3_", &phi_reco_jet3_, &b_phi_reco_jet3_);
+   fChain->SetBranchAddress("m_reco_jet3_", &m_reco_jet3_, &b_m_reco_jet3_);
+   fChain->SetBranchAddress("pt_reco_jet4_", &pt_reco_jet4_, &b_pt_reco_jet4_);
+   fChain->SetBranchAddress("eta_reco_jet4_", &eta_reco_jet4_, &b_eta_reco_jet4_);
+   fChain->SetBranchAddress("phi_reco_jet4_", &phi_reco_jet4_, &b_phi_reco_jet4_);
+   fChain->SetBranchAddress("m_reco_jet4_", &m_reco_jet4_, &b_m_reco_jet4_);
    fChain->SetBranchAddress("unnamed", &unnamed, &b_unnamed);
    fChain->SetBranchAddress("truth_met", &truth_met, &b_truth_met);
    fChain->SetBranchAddress("predicted_pTnu", &predicted_pTnu, &b_predicted_pTnu);

@@ -12,9 +12,9 @@ void basic2() {
    dir.ReplaceAll("basic2.C","");
    dir.ReplaceAll("/./","/");
 
-   TFile *f = new TFile("output_KNeighbours_400GeV.root","RECREATE");
+   TFile *f = new TFile("output_BayesRidge_200GeV.root","RECREATE");
    TTree *T = new TTree("ntuple","data from ascii file");
-   Long64_t nlines = T->ReadFile(Form("%soutput_KNeighbours_400GeV.csv",dir.Data()),"#:eventNumber:pt(mc h+):eta(mc h+):phi(mc h+):e(mc h+):pt(mc tau):eta(mc tau):phi(mc tau):e(mc tau):pt(mc nuH):eta(mc nuH):phi(mc nuH):e(mc nuH):pt(mc nuTau):eta(mc nuTau):phi(mc nuTau):e(mc nuTau):et(met):phi(met):ntau:nbjet:njet:pt(reco tau1):eta(reco tau1):phi(reco tau1):m(reco tau1):pt(reco bjet1):eta(reco bjet1):phi(reco bjet1):m(reco bjet1):pt(reco bjet2):eta(reco bjet2):phi(reco bjet2):m(reco bjet2):pt(reco bjet3):eta(reco bjet3):phi(reco bjet3):m(reco bjet3):pt(reco bjet4):eta(reco bjet4):phi(reco bjet4):m(reco bjet4):pt(reco jet1):eta(reco jet1):phi(reco jet1):m(reco jet1):pt(reco jet2):eta(reco jet2):phi(reco jet2):m(reco jet2):pt(reco jet3):eta(reco jet3):phi(reco jet3):m(reco jet3):pt(reco jet4):eta(reco jet4):phi(reco jet4):m(reco jet4):unnamed:truth_met:predicted_pTnu:resolution_pred_pT:resolution_default_pT");
+   Long64_t nlines = T->ReadFile(Form("%soutput_BayesRidge_200GeV.csv",dir.Data()),"#:eventNumber:pt_mc_h:eta_mc_h_:phi_mc_h_:e_mc_h_:pt_mc_tau_:eta_mc_tau_:phi_mc_tau_:e_mc_tau_:pt_mc_nuH:eta_mc_nuH_:phi_mc_nuH_:e_mc_nuH_:pt_mc_nuTau:eta_mc_nuTau_:phi_mc_nuTau_:e_mc_nuTau_:et_met:phi_met:ntau:nbjet:njet:pt_reco_tau1:eta_reco_tau1_:phi_reco_tau1:m_reco_tau1_:pt_reco_bjet1_:eta_reco_bjet1_:phi_reco_bjet1_:m_reco_bjet1_:pt_reco_bjet2_:eta_reco_bjet2_:phi_reco_bjet2_:m_reco_bjet2_:pt_reco_bjet3_:eta_reco_bjet3_:phi_reco_bjet3_:m_reco_bjet3_:pt_reco_bjet4_:eta_reco_bjet4_:phi_reco_bjet4_:m_reco_bjet4_:pt_reco_jet1_:eta_reco_jet1_:phi_reco_jet1_:m_reco_jet1_:pt_reco_jet2_:eta_reco_jet2_:phi_reco_jet2_:m_reco_jet2_:pt_reco_jet3_:eta_reco_jet3_:phi_reco_jet3_:m_reco_jet3_:pt_reco_jet4_:eta_reco_jet4_:phi_reco_jet4_:m_reco_jet4_:unnamed:truth_met:predicted_pTnu:resolution_pred_pT:resolution_default_pT");
    printf(" found %lld points\n",nlines);
    T->Write();
 }
