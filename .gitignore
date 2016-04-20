@@ -3,3 +3,9 @@
 *.out
 *.bbl
 *.blg
+
+*.xml
+
+.idea/sml-project.iml
+
+Camila_Project/Root/.output_BayesRidge_200GeV.csv.swp
