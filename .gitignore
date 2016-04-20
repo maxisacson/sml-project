@@ -9,3 +9,7 @@
 .idea/sml-project.iml
 
 Camila_Project/Root/.output_BayesRidge_200GeV.csv.swp
+
+Camila_Project/Root/CreateHistos2.C
+
+Camila_Project/Root/CreateHistos2.h
