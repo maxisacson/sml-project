@@ -15,6 +15,10 @@ import matplotlib.pyplot as plt
 
 from argparse import ArgumentParser
 
+from ROOT import TH1F, TFile, TProfile
+
+from rutil import init_atlas_style, show_hists
+
 parser = ArgumentParser(description = 'Regression using ensemble methods')
 parser.add_argument('-r',
                     '--regressor',
@@ -51,7 +55,119 @@ parser.add_argument('-i',
                     type=int,
                     help='maximum number of iterations',
                     metavar='<maxiter>')
+parser.add_argument('-m',
+                    '--matplotlib',
+                    action='store_true',
+                    help='plot using matplotlib')
 arguments = parser.parse_args()
+
+def plot_matplotlib(sample):
+    colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00']
+
+    params = { 'figure.facecolor': 'white',
+               'figure.subplot.bottom': 0.0,
+               'font.size': 16, 
+               'legend.fontsize': 16,
+               'legend.borderpad': 0.2,
+               'legend.labelspacing': 0.2,
+               'legend.handlelength': 1.5,
+               'legend.handletextpad': 0.4,
+               'legend.borderaxespad': 0.2,
+               'lines.markeredgewidth': 2.0,
+               'lines.linewidth': 2.0,
+               'axes.prop_cycle': plt.cycler('color',colors)}
+    plt.rcParams.update(params)
+
+    fig, ax = plt.subplots(2)
+    ax[0].hist(sample[met_pred_parameter], 50, range=(0.0, 400.0), label='Pred', histtype='step')
+    ax[0].hist(sample[met_reco_parameter], 50, range=(0.0, 400.0), label='Obs', histtype='step')
+    ax[0].hist(sample[met_target_parameter], 50, range=(0.0, 400.0), label='Target', histtype='step')
+    ax[0].set_xlim([0,400])
+    ax[0].set_xlabel("pT (GeV)")
+    ax[0].legend(loc='upper right')
+
+    ax[1].hist(sample[met_pred_resolution], 50, range=(-100.0, 100.0), label='Pred', histtype='step')
+    ax[1].hist(sample[met_reco_resolution], 50, range=(-100.0, 100.0), label='Obs', histtype='step')
+    ax[1].set_xlim([-100,100])
+    ax[1].set_xlabel("Resolution (%)")
+    ax[1].legend(loc='upper left')
+
+    fig.tight_layout(pad=0.3)
+    fig.savefig('{}_C{}_g{}_e{}_d{}_i{}.pdf'.format(arguments.regressor,
+                                                    arguments.cost,
+                                                    arguments.gamma,
+                                                    arguments.epsilon,
+                                                    arguments.degree,
+                                                    arguments.iterations))
+    plt.show()
+
+
+
+def plot_root(sample):
+    base_name = '{}_C{}_g{}_e{}_d{}_i{}'.format(arguments.regressor,
+                                                    arguments.cost,
+                                                    arguments.gamma,
+                                                    arguments.epsilon,
+                                                    arguments.degree,
+                                                    arguments.iterations)
+
+    met_pred, met_truth, met_reco, mt_pred, mt_reco = [
+        TH1F(n, '', 100, 0, 500)
+        for n
+        in ['pt_{}'.format(arguments.regressor), 'pt_truth', 'met_reco',
+            'mt_{}'.format(arguments.regressor), 'mt_reco']]
+    res_pred, res_reco = [
+        TH1F(n, '', 100, -100, 100)
+        for n
+        in ['res_{}'.format(arguments.regressor), 'res_reco']]
+    profile = TProfile('profile_pred_{}'.format(arguments.regressor),
+                       '', 100, 0, 500)
+
+    map(met_pred.Fill, sample[met_pred_parameter])
+    map(met_truth.Fill, sample[met_truth_parameter])
+    map(met_reco.Fill, sample[met_reco_parameter])
+    map(mt_pred.Fill, sample[mt_pred_parameter])
+    map(mt_reco.Fill, sample[mt_reco_parameter])
+    map(res_pred.Fill, sample[met_pred_resolution])
+    map(res_reco.Fill, sample[met_reco_resolution])
+    map(profile.Fill, sample['pt(reco tau1)'], sample[met_pred_ratio])
+
+    root_file = TFile.Open('{}.root'.format(base_name), 'RECREATE')
+    root_file.cd()
+    met_pred.Write()
+    mt_pred.Write()
+    res_pred.Write()
+    profile.Write()
+    root_file.ls()
+    root_file.Close()
+
+    init_atlas_style()
+
+    met_pred.SetName('Pred')
+    met_reco.SetName('Reco')
+    met_truth.SetName('Target')
+    o1 = show_hists((met_pred, met_truth, met_reco),
+                    'Missing ET',
+                    '{}_met.pdf'.format(base_name))
+
+    res_pred.SetName('Pred')
+    res_reco.SetName('Reco')
+    o2 = show_hists((res_pred, res_reco),
+                    'Missing ET resolution',
+                    '{}_res.pdf'.format(base_name))
+
+    mt_pred.SetName('Pred')
+    mt_reco.SetName('Reco')
+    o3 = show_hists((mt_pred, mt_reco),
+                    'Transverse mass',
+                    '{}_mt.pdf'.format(base_name))
+
+    profile.SetName('Profile')
+    o3 = show_hists((profile,),
+                    'Profile',
+                    '{}_profile.pdf'.format(base_name))
+    raw_input('Press any key...')
+
 
 # All available variables in the dataset
 all_predictors = [
@@ -85,12 +201,16 @@ selected_displays = [
     'mass_truth'
 ]
 
-pt_truth_parameter = 'pt(mc nuH)'
+nupt_truth_parameter = 'pt(mc nuH)'
 met_truth_parameter = 'et(mc met)'
-reco_parameter = 'et(met)'
-pred_parameter = 'pt(pred nuH)'
-reco_resolution = 'et(res met)'
-pred_resolution = 'pt(res pred nuH)'
+met_reco_parameter = 'et(met)'
+met_pred_parameter = 'pt(pred nuH)'
+met_reco_resolution = 'et(res met)'
+met_pred_resolution = 'pt(res pred nuH)'
+met_pred_ratio = 'pt(ratio nuH)'
+#mt_truth_parameter = 'mt(mc)'
+mt_reco_parameter = 'mt(net)'
+mt_pred_parameter = 'mt(pred)'
 
 pd.set_option('display.max_columns', 500)
 sample_200 = pd.read_csv('../test/mg5pythia8_hp200.root.test3.csv')
@@ -121,6 +241,15 @@ dataset[met_truth_parameter] = \
             * np.cos(  dataset['phi(mc nuH)']
                      - dataset['phi(mc nuTau)']))
 
+#dataset[mt_truth_parameter] = \
+    #np.sqrt(  2*dataset[met_truth_parameter]*dataset['pt(mc tau)']
+            #* (1 - np.cos(dataset['phi(mc tau)'] -
+                          #* dataset[metphi_truth_parameter])))
+dataset[mt_reco_parameter] = \
+    np.sqrt(  2*dataset[met_reco_parameter]*dataset['pt(mc tau)']
+            * (1 - np.cos(dataset['phi(mc tau)'] - dataset['phi(met)'])))
+
+
 #print(dataset[selected_displays].head(10))
 #print(dataset.head(10)['mass_truth'])
 #print(dataset.describe())
@@ -137,10 +266,10 @@ train_predictors.dropna()
 test_predictors.dropna()
 
 # Approximate MET truth with neutrino pT or use real MET truth
-target_parameter = pt_truth_parameter
-#target_parameter = met_truth_parameter
+met_target_parameter = nupt_truth_parameter
+#met_target_parameter = met_truth_parameter
 
-targets = train[target_parameter]
+targets = train[met_target_parameter]
 
 sc = StandardScaler()
 sc.fit(train_predictors)
@@ -188,49 +317,21 @@ regressor.fit(train_predictors_std, targets)
 
 test_predictors_std = sc.transform(test_predictors)
 
-test.loc[:,pred_parameter] = regressor.predict(test_predictors_std)
-test.loc[:,reco_resolution] = (test[target_parameter] - test[reco_parameter]) \
-    / test[target_parameter] * 100.0
-test.loc[:,pred_resolution] = (test[target_parameter] - test[pred_parameter]) \
-    / test[target_parameter] * 100.0
+test.loc[:,met_pred_parameter] = regressor.predict(test_predictors_std)
+test.loc[:,met_reco_resolution] = (test[met_target_parameter] - test[met_reco_parameter]) \
+    / test[met_target_parameter] * 100.0
+test.loc[:,met_pred_resolution] = (test[met_target_parameter] - test[met_pred_parameter]) \
+    / test[met_target_parameter] * 100.0
+test.loc[:,met_pred_ratio] = test[met_pred_parameter]/test[met_target_parameter]
 
-print(test[[target_parameter, pred_parameter, reco_parameter]].head(10))
+test.loc[:,mt_pred_parameter] = \
+    np.sqrt(  2*test[met_pred_parameter]*test['pt(mc tau)']
+            * (1 - np.cos(test['phi(mc tau)'] - test['phi(met)'])))
 
-colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00']
+print(test[[met_target_parameter, met_pred_parameter, met_reco_parameter]].head(10))
+print(test[[mt_pred_parameter, mt_reco_parameter]].head(10))
 
-params = { 'figure.facecolor': 'white',
-           'figure.subplot.bottom': 0.0,
-           'font.size': 16, 
-           'legend.fontsize': 16,
-           'legend.borderpad': 0.2,
-           'legend.labelspacing': 0.2,
-           'legend.handlelength': 1.5,
-           'legend.handletextpad': 0.4,
-           'legend.borderaxespad': 0.2,
-           'lines.markeredgewidth': 2.0,
-           'lines.linewidth': 2.0,
-           'axes.prop_cycle': plt.cycler('color',colors)}
-plt.rcParams.update(params)
-
-fig, ax = plt.subplots(2)
-ax[0].hist(test[pred_parameter], 50, range=(0.0, 400.0), label='Pred', histtype='step')
-ax[0].hist(test[reco_parameter], 50, range=(0.0, 400.0), label='Obs', histtype='step')
-ax[0].hist(test[target_parameter], 50, range=(0.0, 400.0), label='Target', histtype='step')
-ax[0].set_xlim([0,400])
-ax[0].set_xlabel("pT (GeV)")
-ax[0].legend(loc='upper right')
-
-ax[1].hist(test[pred_resolution], 50, range=(-100.0, 100.0), label='Pred', histtype='step')
-ax[1].hist(test[reco_resolution], 50, range=(-100.0, 100.0), label='Obs', histtype='step')
-ax[1].set_xlim([-100,100])
-ax[1].set_xlabel("Resolution (%)")
-ax[1].legend(loc='upper left')
-
-fig.tight_layout(pad=0.3)
-fig.savefig('{}_C{}_g{}_e{}_d{}_i{}.pdf'.format(arguments.regressor,
-                                                arguments.cost,
-                                                arguments.gamma,
-                                                arguments.epsilon,
-                                                arguments.degree,
-                                                arguments.iterations))
-plt.show()
+if arguments.matplotlib:
+    plot_matplotlib(test)
+else:
+    plot_root(test)
