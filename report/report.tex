@@ -100,7 +100,23 @@ Training is performed using stochastic gradient descent with the Nesterov method
 
 A large number of configurations of the hidden layers were tested by varying the number of layers, the number of perceptrons in each layer, and the activation functions (sigmoid, tanh, and softmax). Sigmoid activation functions produced the best result for a fixed training period. A network with two hidden layers (i.e. 4 layers counting the 19 node input layer and 1 node output layer) with 25 and 10 perceptrons was found to be sufficiently complex. Using deeper networks, e.g. one with 4 hidden layer with 20, 35, 25, and 15 perceptrons, did not improve the result.
 
+\subsection{Support Vector Regression}
 
+Support vector machines can be used for regression, and the method is then called support vector regression (SVR). It employs two slack variables, $ξ_n ≥ 0$ and $\hat{ξ}_n ≥ 0$ and the corresponding error function to minimize is
+\[
+  C \sum_{n=1}^N(ξ_n + \hat{ξ_n}) + \frac{1}{2}||w||^2
+\]
+where $C$ is the cost variable. The implementation used is the \texttt{SVR} class from \texttt{scikit-learn}, and it is an $ε$-SVR method. This implementation has four built-in kernels: RBF, sigmoid, linear, and polynomial. The selected predictors in the dataset are scaled to have a mean of 0 and a variance of 1 using the \texttt{StandardScaler} class from \texttt{scikit-learn}.
+
+With the presented dataset, the selected SVR algorithm is not converging within a few minutes runnning time. The maximum number of iterations is therefore limited to 1000. A greater number of iterations is not found to yield significantly better results. The kernel that performs best is the RBF kernel. The value of the cost function is by default set to 1.0, but this setting yields a very poor resolution. Different values of the cost function are tested, and a value of $C=100.0$ is found to be (near) optimal. For the soft margin the default value of $ε=0.1$ is good.
+
+Regardless of the choice of $C$ and $ε$, the performance of the SVR is found to be no better than that of linear ridge regression. The resolution is not improved, and the shape of the true and reconstructed transverse component of the missing energy is not recovered by the prediction.
+
+\subsection{Trees and forests}
+
+Decision trees and ensemble methods, and in particular boosted decision trees (BDTs), have been a popular choice of method in particle physics. The method of decision trees are based on using multiple discriminating variables, and multiple choices in a binary tree, to find the prediction that best describes the target variable. When using ensemble methods, such as extra trees, gradient boosting, or random forests multiple such trees are created, each with its own weight describing its "importance". The tree depth plays an important role when considering the trade-off between over-training and bias, and with the ensemble methods the number of trees is also an important parameter.
+
+The performances of the classes \texttt{DecisionTreeRegressor}, \texttt{ExtraTreesRegressor}, \texttt{GradientBoostingRegressor}, and \texttt{RandomForestRegressor} in \texttt{scikit-learn} are examined. Different settings for the tree depth and (for the ensemble methods) number of trees are used. Near optimal values for the depth and the number of trees is found to be 15 and 100 for all methods and all ensemble methods respectively. The decision tree regression shows some improvement in resolution, but the shape of the transverse component of the missing energy is not recovered by the prediction. Neither in the ensemble methods is the shape of the missing energy recovered, but the resolution is improved. All three ensemble method show similar performance.
 
 \section{Results}
 \label{sec:results}
