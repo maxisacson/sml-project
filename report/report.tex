@@ -104,7 +104,7 @@ A large number of configurations of the hidden layers were tested by varying the
 
 Support vector machines can be used for regression, and the method is then called support vector regression (SVR). It employs two slack variables, $ξ_n ≥ 0$ and $\hat{ξ}_n ≥ 0$ and the corresponding error function to minimize is
 \[
-  C \sum_{n=1}^N(ξ_n + \hat{ξ_n}) + \frac{1}{2}||w||^2
+  C \sum_{n=1}^N(ξ_n + \hat{ξ}_n) + \frac{1}{2}||w||^2
 \]
 where $C$ is the cost variable. The implementation used is the \texttt{SVR} class from \texttt{scikit-learn}, and it is an $ε$-SVR method. This implementation has four built-in kernels: RBF, sigmoid, linear, and polynomial. The selected predictors in the dataset are scaled to have a mean of 0 and a variance of 1 using the \texttt{StandardScaler} class from \texttt{scikit-learn}.
 
