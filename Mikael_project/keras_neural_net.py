@@ -5,17 +5,17 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from multiprocessing import Pool
+# from multiprocessing import Pool
 
 from scipy import stats
 from scipy.stats import norm,t
 
-from sklearn.cross_validation import train_test_split,StratifiedKFold
-from sklearn.feature_selection import SelectKBest, f_classif
-
 from keras.models import Sequential
+from keras.optimizers import SGD
 from keras.layers.core import Dense, Activation
 from keras.callbacks import History
+
+import ROOT
 
 # To run on GPU, prepend set the THEANO_FLAGS:
 # THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32 python keras_neural_net.py
@@ -73,7 +73,8 @@ class NeuralNet:
             self.model.add( Activation(self.activations[i+1]) )
         self.model.add( Dense(output_dim=self.ntargets, init='glorot_uniform') )
         self.model.add( Activation("linear") )
-        self.model.compile(loss='mse', optimizer='sgd')
+        sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
+        self.model.compile(loss='mse', optimizer=sgd)
 
     def scale(self, method='min_max', fillnan='nan'):
         self.scale_method=method
@@ -161,49 +162,43 @@ class NeuralNet:
 def main(argv):
 
     # User configuration
-    # train_args = [ {'layers':[25,10], 'activation':['sigmoid','sigmoid']}]
-    train_args = [ {'layers':[25,15,25], 'activation':['sigmoid','sigmoid','sigmoid']}]
+    train_args = [ {'layers':[25,10], 'activation':['sigmoid','sigmoid']}]
+    # train_args = [ {'layers':[25,15], 'activation':['sigmoid','sigmoid']}]
+    # train_args = [ {'layers':[19,35,25,15], 'activation':['sigmoid','sigmoid','sigmoid','sigmoid']}]
     # train_var = ["pt(mc nuH)","eta(mc nuH)","phi(mc nuH)","e(mc nuH)"]
     train_var = ["pt(mc nuH)"]
     scale_method = 'min_max' # 'min_max', 'mean_std', or 'quantile'
-    n_epochs = 1000
+    n_epochs = 500
     npts = 100000
     kfolds = 3
-
-    # Setup matplotlib
-    colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00']
-    params = { 'figure.facecolor': 'white',
-               'figure.subplot.bottom': 0.0,
-               'font.size': 16, 
-               'legend.fontsize': 16,
-               'legend.borderpad': 0.2,
-               'legend.labelspacing': 0.2,
-               'legend.handlelength': 1.5,
-               'legend.handletextpad': 0.4,
-               'legend.borderaxespad': 0.2,
-               'lines.markeredgewidth': 2.0,
-               'lines.linewidth': 2.0,
-               'axes.prop_cycle': plt.cycler('color',colors)}
-    plt.rcParams.update(params)
-
 
     # Define output names
     layernames = '-'.join([str(x) for x in train_args[0]['layers']])
     activationnames = '-'.join([x[0:3] for x in train_args[0]['activation']])
+    base_ofile = "{}.{}.{}.{}.{}p.{}e.{}".format( layernames, activationnames,
+                                                  scale_method,
+                                                  '-'.join(train_var),
+                                                  npts,
+                                                  n_epochs, 'all' )
+    # Open rootfile
+    ofile = ROOT.TFile(base_ofile + '.root', 'recreate')
     # Read dataset 
     pd.set_option('display.max_columns', 100)
-    datafiles = [ "../test/mg5pythia8_hp200.root.test3.csv"]
-    # datafiles = [ "../test/mg5pythia8_hp200.root.test3.csv",
-    #               "../test/mg5pythia8_hp300.root.test.csv",
-    #               "../test/mg5pythia8_hp400.root.test.csv" ]
+    # datafiles = [ "../test/mg5pythia8_hp200.root.test3.csv"]
+    datafiles = [ "../test/mg5pythia8_hp200.root.test3.csv",
+                  "../test/mg5pythia8_hp300.root.test.csv",
+                  "../test/mg5pythia8_hp400.root.test.csv" ]
     tmp_frames = []
     for d in datafiles:
+        print("INFO: Loading data file {}".format(d))
         tmp_frames.append(pd.read_csv(d))
     dataset_tmp = pd.concat(tmp_frames)
     if len(dataset_tmp) < npts:
         npts = len(dataset_tmp)
         print("WARNING: Number of requested data points more than available")
         print("         Loaded all {} datapoints".format(npts))
+    else:
+        print("INFO: Using {} of {} data points".format(npts,len(dataset_tmp)))
     dataset = dataset_tmp.sample(npts, random_state=1)
     # Add truth mass of H+ to dataset
     dataset["mass_truth"] = ( np.sqrt(2*(dataset["pt(mc nuH)"])
@@ -215,7 +210,7 @@ def main(argv):
 
     # Replace invalid values with NaN
     dataset = dataset.where(dataset > -998.0, other=np.nan)
-    # Predictor variables as determined by SciKit Learn's selectKBest
+    # Predictor variables 
     predictors_final = [ "et(met)", "phi(met)", "nbjet",
                          "pt(reco tau1)", "eta(reco tau1)",
                          "phi(reco tau1)", "m(reco tau1)",
@@ -229,16 +224,18 @@ def main(argv):
                          "phi(reco jet2)", "m(reco jet2)" ]
 
     ntest = int(npts/kfolds)
-    pred_all = [None for i in range(kfolds)]
-    truth_all = [None for i in range(kfolds)]
+    pt_pred_all = [None for i in range(kfolds)]
+    pt_truth_all = [None for i in range(kfolds)]
     met_all = [None for i in range(kfolds)]
     history_all = [None for i in range(kfolds)]
     res_pred_all = [None for i in range(kfolds)]
     res_def_all = [None for i in range(kfolds)]
+    mt_pred_all = [None for i in range(kfolds)]
+    mt_def_all = [None for i in range(kfolds)]
 
     def run_fold(i):
     # for i in range(kfolds):
-        print("Running fold {}/{}".format(i+1,kfolds))
+        print("INFO: Running fold {}/{}".format(i+1,kfolds))
         base_ofile = "{}.{}.{}.{}.{}p.{}e.{}o{}".format( layernames,
                                                          activationnames,
                                                          scale_method,
@@ -259,12 +256,15 @@ def main(argv):
         nn.scale(method=scale_method,fillnan='zero')
         nn.compile()
         # Load weights and history from file if already trained with this setup
+        # Otherwise train with this setup.
         history = None
         if os.path.isfile(base_ofile + '.h5'):
-            print("Loading model weights from file {}".format(base_ofile + '.h5'))
+            print( "INFO: Loading model weights from file {}"
+                   .format(base_ofile + '.h5') )
             nn.load_weights(base_ofile + '.h5')
             tmp_hist = []
-            print("Loading model history from file {}".format(base_ofile + '.loss'))
+            print( "INFO: Loading model history from file {}"
+                   .format(base_ofile + '.loss') )
             with open(base_ofile + '.his','r') as f:
                 for l in f.readlines():
                     tmp_hist.append(float(l.replace('\n','')))
@@ -272,71 +272,155 @@ def main(argv):
         else:
             history = nn.fit(n_epochs)
             # print(history['loss'][-1])
-            print("Saving model weights to file {}".format(base_ofile + '.h5'))
+            print( "INFO: Saving model weights to file {}"
+                   .format(base_ofile + '.h5') )
             nn.save_weights(base_ofile + '.h5')
-            print("Saving model history to file {}".format(base_ofile + '.loss'))
+            print( "INFO: Saving model history to file {}"
+                   .format(base_ofile + '.loss') )
             with open(base_ofile + '.his','w') as f:
                 for l in history['loss']:
                     f.write(str(l)+'\n')
         # Predict 'train_var' and rescale to its physical value.
         nn.predict() 
         nn.unscale()
-        # multipool = Pool(processes=3)
-        # result = multipool.map(train_net, train_args)
 
-        pred    = np.array(nn.predictions)
-        target  = np.array(nn.test[train_var].as_matrix())
-        met     = np.array(nn.test["et(met)"].as_matrix().reshape(-1,1))
-        met_phi = np.array(nn.test["phi(met)"].as_matrix())
-        resolution_predict_tmp = (target - pred)/target*100
-        resolution_predict = [ item for sublist in resolution_predict_tmp
-                               for item in sublist if abs(item) < 200 ]
-        resolution_default_tmp = (target - met)/target*100
-        resolution_default = [ item for sublist in resolution_default_tmp
-                               for item in sublist if abs(item) < 200]
-        pred_all[i] = [float(x) for x in pred]
-        truth_all[i] = [float(x) for x in target]
-        met_all[i] = [float(x) for x in met]
-        history_all[i] = history['loss']
-        res_pred_all[i] = [float(x) for x in resolution_predict]
-        res_def_all[i] = [float(x) for x in resolution_default]
+        pt_pred  = np.array(nn.predictions)
+        pt_truth = np.array(nn.test[train_var].as_matrix())
+        met      = np.array(nn.test["et(met)"].as_matrix().reshape(-1,1))
+        met_phi  = np.array(nn.test["phi(met)"].as_matrix())
+        taupt    = np.array(nn.test["pt(reco tau1)"].as_matrix())
+        tauphi   = np.array(nn.test["phi(reco tau1)"].as_matrix())
+        mt_pred  = []
+        mt_def   = []
 
-        # if one training target
-        binranges = np.linspace(0, 300, 50)
-        fig1, ax1 = plt.subplots(1)
-        ax1.hist( nn.test[train_var[0]], bins=binranges,
-                  label='Truth', histtype='step' )
-        ax1.hist( nn.predictions[train_var[0]], bins=binranges,
-                  label='Pred', histtype='step' )
-        # ax1.set_xlim( [ min([i]),
-        #                    max(nn.test[train_var])  ] )
-        ax1.set_xlabel(train_var[0])
-        ax1.legend()
-        fig1.tight_layout(pad=0.3)
-        fig1.savefig(base_ofile + '.pt.pdf')
-        plt.close(fig1)
+        for j in range(len(taupt)):
+            if taupt[j]>0 and pt_pred[j]>0:
+                mt_pred.append( np.sqrt( 2*pt_pred[j]*taupt[j]*
+                                         (1 - np.cos(tauphi[j]-met_phi[j])) ) )
+                mt_def.append( np.sqrt( 2*met[j]*taupt[j]*
+                                        (1 - np.cos(tauphi[j]-met_phi[j])) ) )
 
-        # Plot training error ("loss") as function of training epoch
-        fig2, ax2 = plt.subplots(1)
-        ax2.plot(history['loss'], color='k')
-        ax2.set_xlabel('Epoch')
-        ax2.set_ylabel('Loss')
-        ax2.set_ylim([0.0, 0.012])
-        # ax2.set_ylim([0.9*min(history['loss']), history['loss'][1]])
-        fig2.tight_layout(pad=0.3)
-        fig2.savefig(base_ofile + '.his.pdf')
-        plt.close(fig2)
+        res_predict     = [ item for sublist in (pt_truth - pt_pred)/pt_truth*100
+                            for item in sublist if abs(item) < 200 ]
+        res_default     = [ item for sublist in (pt_truth - met)/pt_truth*100
+                            for item in sublist if abs(item) < 200]
         
-        fig3, ax3 = plt.subplots(1)
-        ax3.hist( resolution_default, bins=50, label='Default',
-                  histtype='step' )
-        ax3.hist( resolution_predict, bins=50, label='Pred',
-                  histtype='step' )
-        ax3.set_xlabel('Resolution (%)')
-        ax3.legend()
-        fig3.tight_layout(pad=0.3)
-        fig3.savefig(base_ofile + '.res.pdf')
-        plt.close(fig3)
+        pt_pred_all[i]  = [float(x) for x in pt_pred]
+        pt_truth_all[i] = [float(x) for x in pt_truth]
+        met_all[i]      = [float(x) for x in met]
+        history_all[i]  = history['loss']
+        res_pred_all[i] = [float(x) for x in res_predict]
+        res_def_all[i]  = [float(x) for x in res_default]
+        mt_pred_all[i]  = [float(x) for x in mt_pred]
+        mt_def_all[i] = [float(x) for x in mt_def]
+
+
+        
+        pt_pred_hist = ROOT.TH1F( "pt_neural_net", "Neural Network",
+                                   100, 0, 500 )
+        pt_truth_hist = ROOT.TH1F( "pt_default", "pt(mc nuH)",
+                                   100, 0, 500 )
+        for x in nn.test[train_var[0]]:
+            pt_pred_hist.Fill(float(x))
+        for x in nn.predictions[train_var[0]]:
+            pt_truth_hist.Fill(float(x))
+        pt_pred_hist.SetLineColor(1)
+        pt_truth_hist.SetLineColor(2)
+        c1 = ROOT.TCanvas("c1")
+        pt_pred_hist.Draw()
+        pt_truth_hist.Draw("same")
+        l1 = ROOT.TLegend(0.7, 0.7, 0.9, 0.85)
+        l1.AddEntry(pt_pred_hist, "Neural Network", "l")
+        l1.AddEntry(pt_truth_hist, "pt(mc nuH)", "l")
+        l1.Draw()
+        c1.Print(base_ofile + '.pt.pdf')
+  
+        mt_pred_hist = ROOT.TH1F( "mt_neural_net", "Neural Network",
+                                   100, 0, 500 )
+        mt_def_hist = ROOT.TH1F( "mt_default", "Default",
+                                   100, 0, 500 )
+        for x in mt_pred:
+            mt_pred_hist.Fill(float(x))
+        for x in mt_def:
+            mt_def_hist.Fill(float(x))
+        mt_pred_hist.SetLineColor(1)
+        mt_def_hist.SetLineColor(2)
+        c4 = ROOT.TCanvas("c4")
+        mt_pred_hist.Draw()
+        mt_def_hist.Draw("same")
+        l4 = ROOT.TLegend(0.7, 0.7, 0.9, 0.85)
+        l4.AddEntry(mt_pred_hist, "Neural Network", "l")
+        l4.AddEntry(mt_def_hist, "Default", "l")
+        l4.Draw()
+        c4.Print(base_ofile + '.mt.pdf')
+
+        
+        # # if one training target
+        # binranges = np.linspace(0, 300, 50)
+        # fig1, ax1 = plt.subplots(1)
+        # ax1.hist( nn.test[train_var[0]], bins=binranges,
+        #           label='Truth', histtype='step' )
+        # ax1.hist( nn.predictions[train_var[0]], bins=binranges,
+        #           label='Pred', histtype='step' )
+        # # ax1.set_xlim( [ min([i]),
+        # #                    max(nn.test[train_var])  ] )
+        # ax1.set_xlabel(train_var[0])
+        # ax1.legend()
+        # fig1.tight_layout(pad=0.3)
+        # fig1.savefig(base_ofile + '.pt.pdf')
+        # plt.close(fig1)
+
+        
+        hist_graph = ROOT.TGraph( len(history['loss']),
+                                  np.array([ float(x) for x in
+                                             range(len(history['loss'])) ] ),
+                                  np.array(history['loss']) )
+        hist_graph.SetNameTitle("hist_graph", "Training history;Epoch;Loss")
+        c2 = ROOT.TCanvas("c2")
+        hist_graph.Draw()
+        c2.Print(base_ofile + '.his.pdf')
+        
+        # # Plot training error ("loss") as function of training epoch
+        # fig2, ax2 = plt.subplots(1)
+        # ax2.plot(history['loss'], color='k')
+        # ax2.set_xlabel('Epoch')
+        # ax2.set_ylabel('Loss')
+        # ax2.set_ylim([0.0, 0.012])
+        # # ax2.set_ylim([0.9*min(history['loss']), history['loss'][1]])
+        # fig2.tight_layout(pad=0.3)
+        # fig2.savefig(base_ofile + '.his.pdf')
+        # plt.close(fig2)
+        
+        res_pred_hist = ROOT.TH1F( "res_pred_hist",
+                                   "Neural Network;Resolution (%)",
+                                   100, -200, 200 )
+        res_def_hist = ROOT.TH1F( "res_truth_hist", "Default;Resolution (%)",
+                                  100, -200, 200 )
+        for x in res_predict:
+            res_pred_hist.Fill(float(x))
+        for x in res_default:
+            res_def_hist.Fill(float(x))
+        res_pred_hist.SetLineColor(1)
+        res_def_hist.SetLineColor(2)
+        c3 = ROOT.TCanvas("c3")
+        res_pred_hist.Draw()
+        res_def_hist.Draw("same")
+        l3 = ROOT.TLegend(0.7, 0.7, 0.9, 0.85)
+        l3.AddEntry(res_pred_hist, "Neural Network", "l")
+        l3.AddEntry(res_def_hist, "Default", "l")
+        l3.Draw()
+        c3.Print(base_ofile + '.res.pdf')
+
+        # fig3, ax3 = plt.subplots(1)
+        # ax3.hist( res_default, bins=50, label='Default',
+        #           histtype='step' )
+        # ax3.hist( res_predict, bins=50, label='Pred',
+        #           histtype='step' )
+        # ax3.set_xlabel('Resolution (%)')
+        # ax3.legend()
+        # fig3.tight_layout(pad=0.3)
+        # fig3.savefig(base_ofile + '.res.pdf')
+        # plt.close(fig3)
 
 
         # plt.show()
@@ -355,25 +439,46 @@ def main(argv):
                                                   '-'.join(train_var),
                                                   npts,
                                                   n_epochs, 'all' )
-    # if one training target
-    binranges = np.linspace(0, 300, 50)
-    fig1, ax1 = plt.subplots(1)
-    predplot = [x for x in [y for y in pred_all]][0]
-    truthplot = [x for x in [y for y in truth_all]][0]
-    metplot = [x for x in [y for y in met_all]][0]
-    ax1.hist( truthplot, bins=binranges,
-              label='Truth', histtype='step' )
-    ax1.hist( metplot, bins=binranges,
-              label='MET', histtype='step' )
-    ax1.hist( predplot, bins=binranges,
-              label='Pred', histtype='step' )
-    # ax1.set_xlim( [ min([i]),
-    #                    max(nn.test[train_var])  ] )
-    ax1.set_xlabel(train_var[0])
-    ax1.legend()
-    fig1.tight_layout(pad=0.3)
-    fig1.savefig(base_ofile + '.pt.pdf')
-    plt.close(fig1)
+
+    predplot = [x for x in [y for y in pt_pred_all]][0]
+    truthplot = [x for x in [y for y in pt_truth_all]][0]
+
+    pt_pred_hist = ROOT.TH1F( "pt_pred_hist_all", "Neural Network",
+                              100, 0, 500 )
+    pt_truth_hist = ROOT.TH1F( "pt_truth_hist_all", "pt(mc nuH)",
+                               100, 0, 500 )
+    for x in predplot:
+        pt_pred_hist.Fill(float(x))
+    for x in truthplot:
+        pt_truth_hist.Fill(float(x))
+    pt_pred_hist.SetLineColor(1)
+    pt_truth_hist.SetLineColor(2)
+    c1 = ROOT.TCanvas("c1")
+    pt_pred_hist.Draw()
+    pt_truth_hist.Draw("same")
+    l1 = ROOT.TLegend(0.7, 0.7, 0.9, 0.85)
+    l1.AddEntry(pt_pred_hist, "Neural Network", "l")
+    l1.AddEntry(pt_truth_hist, "pt(mc nuH)", "l")
+    l1.Draw()
+    c1.Print(base_ofile + '.pt.pdf')
+    
+    # # if one training target
+    # binranges = np.linspace(0, 300, 50)
+    # fig1, ax1 = plt.subplots(1)
+    # metplot = [x for x in [y for y in met_all]][0]
+    # ax1.hist( truthplot, bins=binranges,
+    #           label='Truth', histtype='step' )
+    # ax1.hist( metplot, bins=binranges,
+    #           label='MET', histtype='step' )
+    # ax1.hist( predplot, bins=binranges,
+    #           label='Pred', histtype='step' )
+    # # ax1.set_xlim( [ min([i]),
+    # #                    max(nn.test[train_var])  ] )
+    # ax1.set_xlabel(train_var[0])
+    # ax1.legend()
+    # fig1.tight_layout(pad=0.3)
+    # fig1.savefig(base_ofile + '.pt.pdf')
+    # plt.close(fig1)
 
     # Plot training error ("loss") as function of training epoch
     fig2, ax2 = plt.subplots(1)
@@ -389,16 +494,72 @@ def main(argv):
 
     respredplot = [x for x in [y for y in res_pred_all]][0]
     resdefplot = [x for x in [y for y in res_def_all]][0]
-    fig3, ax3 = plt.subplots(1)
-    ax3.hist( resdefplot, bins=50, label='Default',
-              histtype='step' )
-    ax3.hist( respredplot, bins=50, label='Pred',
-              histtype='step' )
-    ax3.legend()
-    ax3.set_xlabel('Resolution (%)')
-    fig3.tight_layout(pad=0.3)
-    fig3.savefig(base_ofile + '.res.pdf')
-    plt.close(fig3)
+
+    res_pred_hist = ROOT.TH1F( "res_pred_hist_all",
+                               "Neural Network;Resolution (%)",
+                               100, -200, 200 )
+    res_def_hist = ROOT.TH1F( "res_truth_hist_all",
+                              "Default;Resolution (%)",
+                              100, -200, 200 )
+    for x in respredplot:
+        res_pred_hist.Fill(float(x))
+    for x in resdefplot:
+        res_def_hist.Fill(float(x))
+    res_pred_hist.SetLineColor(1)
+    res_def_hist.SetLineColor(2)
+    c3 = ROOT.TCanvas("c3")
+    res_pred_hist.Draw()
+    res_def_hist.Draw("same")
+    l3 = ROOT.TLegend(0.7, 0.7, 0.9, 0.85)
+    l3.AddEntry(res_pred_hist, "Neural Network", "l")
+    l3.AddEntry(res_def_hist, "Default", "l")
+    l3.Draw()
+    c3.Print(base_ofile + '.res.pdf')
+
+    # fig3, ax3 = plt.subplots(1)
+    # ax3.hist( resdefplot, bins=50, label='Default',
+    #           histtype='step' )
+    # ax3.hist( respredplot, bins=50, label='Pred',
+    #           histtype='step' )
+    # ax3.legend()
+    # ax3.set_xlabel('Resolution (%)')
+    # fig3.tight_layout(pad=0.3)
+    # fig3.savefig(base_ofile + '.res.pdf')
+    # plt.close(fig3)
+
+
+    mtpredplot = [x for x in [y for y in mt_pred_all]][0]
+    mtdefplot = [x for x in [y for y in mt_def_all]][0]
+
+    mt_pred_hist = ROOT.TH1F( "mt_neural_net",
+                               "Neural Network;mt (GeV)",
+                               100, 0, 500 )
+    mt_def_hist = ROOT.TH1F( "mt_default",
+                              "Default;mt (GeV)",
+                              100, 0, 500 )
+    for x in mtpredplot:
+        mt_pred_hist.Fill(float(x))
+    for x in mtdefplot:
+        mt_def_hist.Fill(float(x))
+    mt_pred_hist.SetLineColor(1)
+    mt_def_hist.SetLineColor(2)
+    c4 = ROOT.TCanvas("c4")
+    mt_pred_hist.Draw()
+    mt_def_hist.Draw("same")
+    l4 = ROOT.TLegend(0.7, 0.7, 0.9, 0.85)
+    l4.AddEntry(mt_pred_hist, "Neural Network", "l")
+    l4.AddEntry(mt_def_hist, "Default", "l")
+    l4.Draw()
+    c4.Print(base_ofile + '.mt.pdf')
+
+    pt_truth_hist.Write()
+    pt_pred_hist.Write()
+    res_pred_hist.Write()
+    res_def_hist.Write()
+    mt_pred_hist.Write()
+    mt_def_hist.Write()
+
+    ofile.Close()
 
 
 if __name__=="__main__":
