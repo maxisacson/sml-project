@@ -93,6 +93,20 @@ The true quantities for both the observable and the unobservable variables are a
 
 \section{Methods and Implementation}
 
+\subsection{Feature selection}
+
+In order to select the variables that bring most information into the training, a feature selection was performed based on the p-value of each feature with respect to the target. The best variables in this case are the following:
+
+\begin{itemize}
+    \item \exmiss, \eymiss.
+    \item $P_{\tau_\mathrm{vis.}}$ 
+     \item $P_{b_0}$, $P_{q_0}$, $P_{q_1}$ .
+     \item Number of reconstructed $b$-jets in the event.
+     
+\end{itemize}
+
+All algorithms presented in this section use these features as inputs in the prediction of the transverse momentum from the neutrino.
+
 \subsection{Bayesian Ridge Regression}
 
 A simple approach using linear regression techniques to predict the neutrino transverse moment was investigated. The algorithm with best performance is the Bayesian Ridge Regression, which introduces a zero mean spherical gaussian governed by a single precision parameter as prior probability distribution over the model parameters. The prior and noise parameter are estimated jointly during the fit to the data in several iterations. For an optimal result, 200 iterations are performed, it is found that a larger number of iterations does not improve the prediction.
