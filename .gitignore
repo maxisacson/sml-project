@@ -18,3 +18,5 @@ Camila_Project/Root/CreateHistos2.h
 *.swp
 *.pyc
 >>>>>>> origin/master
+
+report/BayesReg.tex
