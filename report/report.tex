@@ -176,13 +176,15 @@ Given a training data set of targets $\mathbf t = (t_1,\ldots,t_N)^\text{T}$ cor
 \end{align}
 where the elements of $\mathbf C$ are $C_{nm} = k(\mathbf x_n, \mathbf x_m) + \beta^{-1}\delta_{nm}$, the elements of $\mathbf k$ are $k_n = k(\mathbf x_n, \mathbf x_{N+1})$, and $c = k(\mathbf x_{N+1}, \mathbf x_{N+1}) + \beta^{-1}$. Here $k(\mathbf x, \mathbf x')$ is the kernel function, and $\beta$ is the precision of the noise in the measurements, assuming that the noise $\epsilon_n$ for each measurement is isotropically distributed as $\mathcal N(\mathbf 0 | \beta^{-1}\mathbb 1)$.
 
-The squared exponential was choosen as the kernel method, defined by
+The squared exponential was choosen as the kernel function, defined by
 \begin{equation}
     k(\mathbf x, \mathbf x') = \exp( -\theta ||\mathbf x - \mathbf x'||^2 )
 \end{equation}
 where the parameter $\theta$ is estimated using maximum likelihood, and is allowed to float between $10^{-4}$ and $10^{-1}$. The precision of the noise was taken as $\beta = 100$. 
 
-Training and testing of the Gaussian processes was done using 3-fold cross validation on 8000 measurements. Due to the non-sparseness of Gaussian processes and memory constraints, more data than this was not feasible to use in the training.
+The result presented here uses \texttt{Python} with \texttt{Numpy} \cite{numpy}, and \texttt{Pandas} \cite{pandas} for general data processing, and \texttt{scikit-learn} \cite{scikit-learn} for the implementation of the algorithm.
+
+Training and testing of the Gaussian process was done using 3-fold cross validation on 8000 measurements. Due to the non-sparseness of Gaussian processes and memory constraints, more data than this was not feasible to use in the training.
 \section{Results}
 \label{sec:results}
 
