@@ -22,7 +22,7 @@
 \bibliographystyle{unsrt}
 
 \title{Report}
-\subtitle{A study of machine learning algorithms for reconstruction of missing energy in particle physics experiments.}
+\subtitle{A study of machine learning algorithms for reconstruction of missing energy in high energy physics experiments.}
 % \subject{Statistical Machine Learning}
 
 \author{
@@ -88,7 +88,7 @@ Unobservable variables:
 \end{itemize}
 
 \subsection{Production}
-MG5\_aMC@NLO \cite{Alwall:2014hca} is used for the matrix element computation of $gg / q \bar q \to H^+$ and the event simulation. The events are then passed to PYTHIA8 \cite{Sjöstrand2015159} for the showering and hadronization, and for the $H^+\to \tau\nu$ decay. Finally, the detector response is simulated using DELPHES \cite{Favereau2014} with an ATLAS-like geometry.
+\texttt{MG5\_aMC@NLO} \cite{Alwall:2014hca} is used for the matrix element computation of $gg / q \bar q \to H^+$ and the event simulation. The events are then passed to \texttt{PYTHIA8} \cite{Sjöstrand2015159} for the showering and hadronization, and for the $H^+\to \tau\nu$ decay. Finally, the detector response is simulated using \texttt{DELPHES} \cite{Favereau2014} with an ATLAS-like geometry.
 
 \subsection{Estimated and true quantities}
 The true quantities for both the observable and the unobservable variables are available as output from the event simulation. The estimated values for the observable variables are reconstructed from the output from the detector response simulation.
@@ -122,7 +122,7 @@ For all methods in the following a simple scheme is used to optimize their hyper
 
 A simple approach using linear regression techniques to predict the neutrino transverse moment was investigated. The algorithm with best performance is the Bayesian Ridge Regression, which introduces a zero mean spherical gaussian governed by a single precision parameter as prior probability distribution over the model parameters. The prior and noise parameter are estimated jointly during the fit to the data in several iterations. For an optimal result, 200 iterations are performed, it is found that a larger number of iterations does not improve the prediction.
 
-The result presented here uses Python with Numpy \cite{numpy}, and Pandas \cite{pandas} for general data processing, and scikit-learn \cite{scikit-learn} for the implementation of the algorithm.
+The result presented here uses \texttt{Python} with \texttt{Numpy} \cite{numpy}, and \texttt{Pandas} \cite{pandas} for general data processing, and \texttt{scikit-learn} \cite{scikit-learn} for the implementation of the algorithm.
 
 
 \subsection{Artificial Neural Network}
@@ -130,7 +130,7 @@ The result presented here uses Python with Numpy \cite{numpy}, and Pandas \cite{
 An \gls{ANN} was used to predict the transverse momentum of the neutrino from the charged Higgs decay from the four-momenta of the detected decay products. 
 % An \gls{ANN} consists of one input layer, several hidden layers, and an output layer. The input layer consists of the input data vector. The values of this vectors are muliplied by weight and passed on to the hidden layers, where an activation function is applied. In the end, the 
 
-The \gls{ANN} implemented here uses Python with SciPy \cite{scipy}, Numpy \cite{numpy}, and Pandas \cite{pandas} for general data processing, and Keras \cite{keras} for the actual neural network. The number of input nodes is restricted to the 19 selected predictor variables and the output to the target dimension of 1. Since the network is used for regression, the activation functions between the last hidden layer and the output must be linear.
+The \gls{ANN} implemented here uses \texttt{Python} with \texttt{SciPy} \cite{scipy}, \texttt{Numpy} \cite{numpy}, and \texttt{Pandas} \cite{pandas} for general data processing, and \texttt{Keras} \cite{keras} for the actual neural network. The number of input nodes is restricted to the 19 selected predictor variables and the output to the target dimension of 1. Since the network is used for regression, the activation functions between the last hidden layer and the output must be linear.
 
 The data is scaled to avoid the tails of the \gls{ANN} activation functions and improve the learning rate. The method used here is to scale it such that the minimum is -1 and the maximum is 1 for each training set variable. The test set data is scaled using the scaling parameters computed from the training set. Another scaling method is to scale the mean to 0 and the standard deviation to 1, but this was found to slow down the training and give worst results.
 
