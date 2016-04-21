@@ -93,8 +93,6 @@ The true quantities for both the observable and the unobservable variables are a
 
 \section{Methods and Implementation}
 
-\subsection{Predictor selection}
-
 \subsection{Bayesian Ridge Regression}
 
 A simple approach using linear regression techniques to predict the neutrino transverse moment was investigated. The algorithm with best performance is the Bayesian Ridge Regression, which introduces a zero mean spherical gaussian governed by a single precision parameter as prior probability distribution over the model parameters. The prior and noise parameter are estimated jointly during the fit to the data in several iterations. For an optimal result, 200 iterations are performed, it is found that a larger number of iterations does not improve the prediction.
@@ -104,9 +102,12 @@ The result presented here uses Python with Numpy \cite{numpy}, and Pandas \cite{
 
 \subsection{Artificial Neural Network}
 
-The data needs to be scaled to avoid the tails of the \gls{ANN} activation functions and improve the learning rate. The method used here is to scale it such that the minimum is -1 and the maximum is 1 for each training set variable. The test set data is scaled using the scaling parameters computed from the training set. Another scaling method would be to scale the mean to 0 and the standard deviation to 1, but this was found to slow down the training and give worst result.
+An \gls{ANN} was used to predict the transverse momentum of the neutrino from the charged Higgs decay from the four-momenta of the detected decay products. 
+% An \gls{ANN} consists of one input layer, several hidden layers, and an output layer. The input layer consists of the input data vector. The values of this vectors are muliplied by weight and passed on to the hidden layers, where an activation function is applied. In the end, the 
 
 The \gls{ANN} implemented here uses Python with SciPy \cite{scipy}, Numpy \cite{numpy}, and Pandas \cite{pandas} for general data processing, and Keras \cite{keras} for the actual neural network. The number of input nodes is restricted to the 19 selected predictor variables and the output to the target dimension of 1. Since the network is used for regression, the activation functions between the last hidden layer and the output must be linear.
+
+The data is scaled to avoid the tails of the \gls{ANN} activation functions and improve the learning rate. The method used here is to scale it such that the minimum is -1 and the maximum is 1 for each training set variable. The test set data is scaled using the scaling parameters computed from the training set. Another scaling method is to scale the mean to 0 and the standard deviation to 1, but this was found to slow down the training and give worst results.
 
 Training is performed using stochastic gradient descent with the Nesterov method \cite{nesterov} and a mean-squared-error loss function. The learning rate was set to 0.1, the learning rate decay to $\num{1e-6}$, and the momentum to 0.9.
 
@@ -156,8 +157,8 @@ The mass of the $H^+$ is the ultimate discriminant variable, but is not built du
 
 As stated before, in this project it is assumed that the contribution from the neutrino from the $\tau$ decay to the total missing energy is negligible, and only focus on the neutrino from the charged Higgs decay as the unobserved variable. This approach is not correct for higher masses of the $H^+$. A more complete study would be to target the complete three-vector of the missing energy or the (combined or separate) four-vectors of the two neutrinos. These options were briefly looked at but were considered to be out of the scope of this project. They will be pursued in more detail in future studies.
 
-ISN'T THIS LAST PARAGRAPH THE SAME AS THE PREVIOUS ONE? OF RECONSTRUCTING THE 3-VECTOR? THIS PARAGRAPH IS A BIT CONFUSING.
-To compute the missing transverse mass \mt (described in sec. \ref{sec:results}) from the \pt predicted by the \gls{ML} methods, the angle $\phi$ of the \pt is needed. However, since we are only predicting the \pt, the angle $\phi$ is unknown and is instead taken from the angle of \mt. It would have been better to also predict $\phi$. This will also be studied in the future.
+% ISN'T THIS LAST PARAGRAPH THE SAME AS THE PREVIOUS ONE? OF RECONSTRUCTING THE 3-VECTOR? THIS PARAGRAPH IS A BIT CONFUSING.
+% To compute the missing transverse mass \mt (described in sec. \ref{sec:results}) from the \pt predicted by the \gls{ML} methods, the angle $\phi$ of the \pt is needed. However, since we are only predicting the \pt, the angle $\phi$ is unknown and is instead taken from the angle of \mt. It would have been better to also predict $\phi$. This will also be studied in the future.
 
 % Mention that we use phi(met) when calculating the mT for the prediction. In principle we should predict phi as well. 
 % The second nu as source of error

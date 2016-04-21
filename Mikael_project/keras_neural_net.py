@@ -170,8 +170,8 @@ def main(argv):
     train_var = ["pt(mc nuH)"]
     scale_method = 'min_max' # 'min_max', 'mean_std', or 'quantile'
     n_epochs = 500
-    npts = 200000
-    kfolds = 3
+    npts = 25000
+    kfolds = 2
 
     # Define output names
     layernames = '-'.join([str(x) for x in train_args[0]['layers']])
@@ -192,12 +192,12 @@ def main(argv):
     tmp_frames = []
     for d in datafiles:
         print("INFO: Loading data file {}".format(d))
-        tmp_frames.append(pd.read_csv(d))
+        tmp_frames.append(pd.read_csv(d, nrows=25000))
     dataset_tmp = pd.concat(tmp_frames)
     if len(dataset_tmp) < npts:
         npts = len(dataset_tmp)
         print("WARNING: Number of requested data points more than available")
-        print("         Loaded all {} datapoints".format(npts))
+        print("         Loaded {} datapoints".format(npts))
     else:
         print("INFO: Using {} of {} data points".format(npts,len(dataset_tmp)))
     dataset = dataset_tmp.sample(npts, random_state=1)
@@ -217,14 +217,31 @@ def main(argv):
     
     # Replace invalid values with NaN
     dataset = dataset.where(dataset > -998.0, other=np.nan)
+
+    datatestset = pd.read_csv("../test/mg5pythia8_hp200.root.test3.csv", nrows=50000).irow([i+25000 for i in range(25000)])
+    datatestset["mass_truth"] = ( np.sqrt(2*(datatestset["pt(mc nuH)"])
+                                      *(datatestset["pt(mc tau)"])
+                                      * ( np.cosh(datatestset["eta(mc nuH)"]
+                                                  - datatestset["eta(mc tau)"])
+                                          - np.cos(datatestset["phi(mc nuH)"]
+                                                   - datatestset["phi(mc tau)"]))) )
+    datatestset['met_truth'] = ( np.sqrt(  datatestset['pt(mc nuH)']**2
+                                       + datatestset['pt(mc nuTau)']**2
+                                       + 2*datatestset['pt(mc nuH)']
+                                       *datatestset['pt(mc nuTau)']
+                                       * np.cos(  datatestset['phi(mc nuH)']
+                                                  - datatestset['phi(mc nuTau)'])) )
+    
+    # Replace invalid values with NaN
+    datatestset = datatestset.where(datatestset > -998.0, other=np.nan)
+
+
     # Predictor variables 
     predictors_final = [ "et(met)", "phi(met)", "nbjet",
                          "pt(reco tau1)", "eta(reco tau1)",
                          "phi(reco tau1)", "m(reco tau1)",
                          "pt(reco bjet1)", "eta(reco bjet1)",
                          "phi(reco bjet1)", "m(reco bjet1)",
-                         # "pt(reco bjet2)", "eta(reco bjet2)",
-                         # "phi(reco bjet2)", "m(reco bjet2)",
                          "pt(reco jet1)", "eta(reco jet1)",
                          "phi(reco jet1)", "m(reco jet1)",
                          "pt(reco jet2)", "eta(reco jet2)",
@@ -233,7 +250,6 @@ def main(argv):
     ntest = int(npts/kfolds)
     pt_pred_all = [None for i in range(kfolds)]
     pt_truth_all = [None for i in range(kfolds)]
-    # pt_def_all = [None for i in range(kfolds)]
     met_all = [None for i in range(kfolds)]
     history_all = [None for i in range(kfolds)]
     res_pred_all = [None for i in range(kfolds)]
@@ -242,7 +258,6 @@ def main(argv):
     mt_def_all = [None for i in range(kfolds)]
 
     def run_fold(i):
-    # for i in range(kfolds):
         print("INFO: Running fold {}/{}".format(i+1,kfolds))
         base_ofile = "{}.{}.{}.{}.{}p.{}e.{}o{}".format( layernames,
                                                          activationnames,
@@ -252,7 +267,8 @@ def main(argv):
                                                          n_epochs, i+1, kfolds )
         testindex = [x for x in range(ntest*i,ntest*(i+1))]
         trainindex = [x for x in range(npts) if x not in testindex]
-        train = dataset.irow(trainindex)
+        # train = dataset.irow(trainindex)
+        train = datatestset
         test = dataset.irow(testindex)
         nn = None
         nn = NeuralNet( traindata          = train,
@@ -369,8 +385,8 @@ def main(argv):
         hist_graph.Draw()
         c2.Print(base_ofile + '.his.pdf')
         
-        res_pred_hist = ROOT.TH1F( "res_pred_hist", "", 100, -200, 200 )
-        res_def_hist = ROOT.TH1F( "res_def_hist", "", 100, -200, 200 )
+        res_pred_hist = ROOT.TH1F( "res_pred_hist", "", 100, -100, 100 )
+        res_def_hist = ROOT.TH1F( "res_def_hist", "", 100, -100, 100 )
         for x in res_predict:
             res_pred_hist.Fill(float(x))
         for x in res_met:
@@ -439,8 +455,8 @@ def main(argv):
     respredplot = [x for x in [y for y in res_pred_all]][0]
     resdefplot = [x for x in [y for y in res_def_all]][0]
 
-    res_pred_hist = ROOT.TH1F( "res_prediction", "", 100, -200, 200 )
-    res_def_hist = ROOT.TH1F( "res_met", "", 100, -200, 200 )
+    res_pred_hist = ROOT.TH1F( "res_prediction", "", 100, -100, 100 )
+    res_def_hist = ROOT.TH1F( "res_met", "", 100, -100, 100 )
     for x in respredplot:
         res_pred_hist.Fill(float(x))
     for x in resdefplot:
