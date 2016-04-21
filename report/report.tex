@@ -94,7 +94,6 @@ Unobservable variables:
 \begin{itemize}
     \item $P_{\nu_\tau}$ --- The 4-momentum of the neutrino from the charged Higgs decay.
     \item $P_{\bar\nu_\tau}$ --- The 4-momentum of the neutrino from the $\tau$ decay.
-    \item For simplicity, in this particular study it is assumed that the contribution from the neutrino from the $\tau$ decay to the total missing energy is negligible, and only focus on the neutrino from the charged Higgs decay as the unobserved variable. 
 \end{itemize}
 
 \subsection{Production}
@@ -103,7 +102,7 @@ Unobservable variables:
 \subsection{Estimated and true quantities}
 The true quantities for both the observable and the unobservable variables are available as output from the event simulation. The estimated values for the observable variables are reconstructed from the output from the detector response simulation.
 
-\section{Methods and Implementation}
+\section{Method}
 
 \subsection{Strategy}
 The neutrino originating from the decay of the Higgs boson will carry the major part of the missing energy in the events. We can approximate the missing transverse energy (\etmiss) by the true transverse momentum (\pt) of the neutrino from the Higgs boson decay. By using this quantity as the target parameter for the training, we aim to find a better estimate of the missing transverse energy. This will result in increased discriminating power of signal from background, since the variables used for discrimination are strongly dependent on this quantity.
