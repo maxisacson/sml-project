@@ -95,8 +95,10 @@ The true quantities for both the observable and the unobservable variables are a
 
 \section{Methods and Implementation}
 
-\subsection{Feature selection}
+\subsection{Strategy}
+The neutrino originating from the decay of the Higgs boson will carry the major part of the missing energy in the events. We can approximate the missing transverse energy (\etmiss) by the true transverse momentum (\pt) of the neutrino from the Higgs boson decay. By using this quantity as the target parameter for the training, we aim to find a better estimate of the missing transverse energy. This will result in increased discriminating power of signal from background, since the variables used for discrimination are strongly dependent on this quantity.
 
+\subsection{Feature selection}
 In order to select the variables that bring most information into the training, a feature selection was performed based on the p-value of each feature with respect to the target. The best variables in this case are the following:
 
 \begin{itemize}
@@ -104,10 +106,17 @@ In order to select the variables that bring most information into the training, 
     \item $P_{\tau_\mathrm{vis.}}$ 
      \item $P_{b_0}$, $P_{q_0}$, $P_{q_1}$ .
      \item Number of reconstructed $b$-jets in the event.
-     
 \end{itemize}
 
 All algorithms presented in this section use these features as inputs in the prediction of the transverse momentum from the neutrino.
+
+\subsection{Regression optimization}
+\label{sec:optimization}
+For all methods in the following a simple scheme is used to optimize their hyperparameters. We want to predict the \pt\ of the $τ$ neutrino coming from the Higgs boson decay, and the corresponding reconstructed quantity that we want to compare with is the missing transverse energy \etmiss. In order to judge the quality of the prediction we use two figures of merit:
+\begin{itemize}
+  \item the resolution of the predicted neutrino \pt\ compared to the resolution of the \etmiss, where the resolution is defined as $\frac{x-\pt_ν^{\text{truth}}}{\pt_ν^{\text{truth}}}$, and $x$ is $\pt_ν^{\text{predicted}}$ or \etmiss
+  \item the shape of the predicted neutrino \pt\ compared to the true neutrino \pt and the \etmiss; we want the shape to "make physical sense"
+\end{itemize}
 
 \subsection{Bayesian Ridge Regression}
 
@@ -167,16 +176,12 @@ Training and testing of the Gaussian processes was done using 3-fold cross valid
 \section{Results}
 \label{sec:results}
 
-The metrics to measure the performance of the algorithms are the resolution and ratio of the predicted value with respect to its true value and the transverse mass of the tau and neutrino system.
-
-The transverse mass $\mt$ of the $\tau$ and $\nu$ 
-is defined as:
+The final metrics to measure the performance of the algorithms are the resolution (as described in Section~\ref{sec:optimization} above), the ratio of the predicted value with respect to its true value, and the transverse mass of the $τ$ and neutrino system. The transverse mass $\mt$ is defined as:
 \begin{equation}
   \label{eq:mt}
   \mt=\sqrt{ 2 \pt^\tau \pt^\nu   (1-\cos \Delta\phi_{\tau,\text{miss}}) },
 \end{equation}
-where $\Delta\phi_{\tau,\text{miss}}$ is the azimuthal angle between the $\tau$ 
-and the direction of the missing transverse momentum. 
+where $\Delta\phi_{\tau,\text{miss}}$ is the azimuthal angle between the $\tau$ and the direction of the missing transverse momentum. 
 
 % Please describe how the missing mass is calculated
 
