@@ -1,4 +1,4 @@
-\documentclass{scrartcl}
+\documentclass[twocolumn]{scrartcl}
 
 \usepackage{siunitx}
 \usepackage{graphicx}
@@ -10,12 +10,18 @@
 \usepackage{fontspec}
 % \usepackage{authblk}
 \usepackage{unicode-math}
+\usepackage{subcaption}
+\usepackage{geometry}
+\geometry{a4paper}
+\usepackage{babel}
+\usepackage[affil-it]{authblk}
 
 % \makeatletter
 % \renewcommand\AB@affilsepx{,~ \protect\Affilfont}
 % \makeatother
 
 \setkomafont{author}{\sffamily}
+\changefontsizes{8pt}
 
 \newcommand{\nump}[2]{\num[round-mode=places,round-precision=#2]{#1}}
 \DeclareGraphicsExtensions{.pdf,.eps}
@@ -25,23 +31,27 @@
 \subtitle{A study of machine learning algorithms for reconstruction of missing energy in high energy physics experiments.}
 % \subject{Statistical Machine Learning}
 
-\author{
-  Max Isacson, \url{max.isacson@physics.uu.se}
-  \and
-  Mikael M\aa rtensson, \url{mikael.martensson@physics.uu.se}
-  \and
-  Camila Rangel Smith, \url{camila.rangel@physics.uu.se}
-  \and
-  Henrik Öhman, \url{ohman@cern.ch}
-}
-% \author[1]{Max Isacsson}
-% \author[2]{Mikael M\aa rtensson}
-% \author[3]{Camila Rangel Smith}
-% \author[4]{Henrik \"{O}hman}
-% \affil[1]{\small\url{max.isacsson@physics.uu.se}}
-% \affil[2]{\url{mikael.martensson@physics.uu.se}}
-% \affil[3]{\url{camila.rangel@physics.uu.se}}
-% \affil[4]{\url{ohman@cern.ch}}
+%\author{
+%  Max Isacson, \url{max.isacson@physics.uu.se}
+%  \and
+%  Mikael M\aa rtensson, \url{mikael.martensson@physics.uu.se}
+%  \and
+%  Camila Rangel Smith, \url{camila.rangel@physics.uu.se}
+%  \and
+%  Henrik Öhman, \url{ohman@cern.ch}
+%  Max Isacson\thanks{\url{max.isacson@physics.uu.se}}
+%  Mikael M\aa rtensson\thanks{\url{mikael.martensson@physics.uu.se}}
+%  Camila Rangel Smith\thanks{\url{camila.rangel@physics.uu.se}}
+%  Henrik Öhman\thanks{\url{ohman@cern.ch}}
+%}
+ \author[1]{Max Isacson}
+ \author[2]{Mikael M\aa rtensson}
+ \author[3]{Camila Rangel Smith}
+ \author[4]{Henrik \"{O}hman}
+ \affil[1]{\url{max.isacson@physics.uu.se}}
+ \affil[2]{\url{mikael.martensson@physics.uu.se}}
+ \affil[3]{\url{camila.rangel@physics.uu.se}}
+ \affil[4]{\url{ohman@cern.ch}}
 
 \newacronym{ANN}{ANN}{Artificial Neural Network}
 \newacronym{ML}{ML}{Machine Learning}
@@ -183,6 +193,28 @@ The final metrics to measure the performance of the algorithms are the resolutio
 \end{equation}
 where $\Delta\phi_{\tau,\text{miss}}$ is the azimuthal angle between the $\tau$ and the direction of the missing transverse momentum. 
 
+\begin{figure}
+    \centering
+    \begin{subfigure}{.48\textwidth}
+        \includegraphics[width=\textwidth]{plots/pt_200.pdf}
+    \end{subfigure}
+    ~
+    \begin{subfigure}{.48\textwidth}
+        \includegraphics[width=\textwidth]{plots/profile_200.pdf}
+    \end{subfigure}
+
+    \begin{subfigure}{.48\textwidth}
+        \includegraphics[width=\textwidth]{plots/mt_200.pdf}
+    \end{subfigure}
+    ~
+    \begin{subfigure}{.48\textwidth}
+        \includegraphics[width=\textwidth]{plots/resolution_200.pdf}
+    \end{subfigure}
+    \caption{Transverse momentum, response, transverse mass, and resolution of the considered ML algorithms, for a Charged Higgs mass of 200 GeV.}\label{fig:result200}
+\end{figure}
+
+
+
 % Please describe how the missing mass is calculated
 
 \section{Discussion}
@@ -200,6 +232,46 @@ As stated before, in this project it is assumed that the contribution from the n
 
 % Mention that we use phi(met) when calculating the mT for the prediction. In principle we should predict phi as well. 
 % The second nu as source of error
+
+\begin{figure}[htpb]
+    \centering
+    \begin{subfigure}{.48\textwidth}
+        \includegraphics[width=\textwidth]{plots/pt_300.pdf}
+    \end{subfigure}
+    ~
+    \begin{subfigure}{.48\textwidth}
+        \includegraphics[width=\textwidth]{plots/profile_300.pdf}
+    \end{subfigure}
+
+    \begin{subfigure}{.48\textwidth}
+        \includegraphics[width=\textwidth]{plots/mt_300.pdf}
+    \end{subfigure}
+    ~
+    \begin{subfigure}{.48\textwidth}
+        \includegraphics[width=\textwidth]{plots/resolution_300.pdf}
+    \end{subfigure}
+    \caption{Transverse momentum, response, transverse mass, and resolution of the considered ML algorithms, for a Charged Higgs mass of 300 GeV.}\label{fig:result300}
+\end{figure}
+
+\begin{figure}[htpb]
+    \centering
+    \begin{subfigure}{.48\textwidth}
+        \includegraphics[width=\textwidth]{plots/pt_400.pdf}
+    \end{subfigure}
+    ~
+    \begin{subfigure}{.48\textwidth}
+        \includegraphics[width=\textwidth]{plots/profile_400.pdf}
+    \end{subfigure}
+
+    \begin{subfigure}{.48\textwidth}
+        \includegraphics[width=\textwidth]{plots/mt_400.pdf}
+    \end{subfigure}
+    ~
+    \begin{subfigure}{.48\textwidth}
+        \includegraphics[width=\textwidth]{plots/resolution_400.pdf}
+    \end{subfigure}
+    \caption{Transverse momentum, response, transverse mass, and resolution of the considered ML algorithms, for a Charged Higgs mass of 400 GeV.}\label{fig:result400}
+\end{figure}
 
 \bibliography{refs}
 

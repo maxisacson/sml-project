@@ -62,20 +62,22 @@ def rebin(h, n=2):
 #        count = h.GetXaxis().GetBinContent(nbin)
 
 
-def make_plot(files, ptype="pt", pdir="plots"):
+def make_plot(files, ptype="pt", pdir="plots", postfix=""):
     f_indep = ROOT.TFile.Open(files["independents"], "READ")
     f_gp = ROOT.TFile(files["gp"], "READ")
     f_nn = ROOT.TFile(files["nn"], "READ")
-    f_rr = ROOT.TFile(files["rr1"], "READ")
-    f_rr2 = ROOT.TFile(files["rr2"], "READ")
-    f_rr3 = ROOT.TFile(files["rr3"], "READ")
+    f_rr = ROOT.TFile(files["rr"], "READ")
+    #f_rr2 = ROOT.TFile(files["rr2"], "READ")
+    #f_rr3 = ROOT.TFile(files["rr3"], "READ")
     f_svr = ROOT.TFile(files["svr"], "READ")
+    f_rf = ROOT.TFile(files["rf"], "READ")
 
     met_var = None
     truth_var = None
     gp_var = None
     nn_var = None
     rr_var = None
+    rf_var = None
     xtitle = "Arbitraty units"
     ytitle = "Arbitraty units"
 
@@ -86,6 +88,7 @@ def make_plot(files, ptype="pt", pdir="plots"):
         nn_var = "pt_prediction"
         rr_var = "pt_BayesRidgeReg"
         svr_var = "pt_svr_rbf"
+        rf_var = "pt_random_forest"
         xtitle = "E_{T} [GeV]"
     if ptype == "mt":
         met_var = "mt_met"
@@ -94,6 +97,7 @@ def make_plot(files, ptype="pt", pdir="plots"):
         nn_var = "mt_prediction"
         rr_var = "mt_BayesRidgeReg"
         svr_var = "mt_svr_rbf"
+        rf_var = "mt_random_forest"
         xtitle = "M_{T} [GeV]"
     if ptype == "resolution":
         met_var = "res_met"
@@ -101,6 +105,7 @@ def make_plot(files, ptype="pt", pdir="plots"):
         nn_var = "res_prediction"
         rr_var = "res_BayesRidgeReg"
         svr_var = "res_svr_rbf"
+        rf_var = "res_random_forest"
         xtitle = "Resolution [%]"
     if ptype == "profile":
         met_var = "profile_met"
@@ -108,6 +113,7 @@ def make_plot(files, ptype="pt", pdir="plots"):
         nn_var = "profile_prediction"
         rr_var = "profile_pred_BayesRidgeReg"
         svr_var = "profile_pred_svr_rbf"
+        rf_var = "profile_pred_random_forest"
         xtitle = "nu_{H} p_{T} [GeV]"
         ytitle = "Response"
    
@@ -118,16 +124,17 @@ def make_plot(files, ptype="pt", pdir="plots"):
     h_gp = f_gp.Get(gp_var)
     h_nn = f_nn.Get(nn_var)
     h_rr = f_rr.Get(rr_var)
-    h_rr2 = f_rr2.Get(rr_var)
-    h_rr3 = f_rr3.Get(rr_var)
-    h_rr.Add(h_rr2)
-    h_rr.Add(h_rr3)
+    #h_rr2 = f_rr2.Get(rr_var)
+    #h_rr3 = f_rr3.Get(rr_var)
+    #h_rr.Add(h_rr2)
+    #h_rr.Add(h_rr3)
     h_svr = f_svr.Get(svr_var)
+    h_rf = f_rf.Get(rf_var)
 
     if ptype != "profile":
-        map(normalize, [h_truth, h_met, h_gp, h_nn, h_rr, h_svr])
+        map(normalize, [h_truth, h_met, h_gp, h_nn, h_rr, h_svr, h_rf])
   
-    map(rebin, [h_truth, h_met, h_gp, h_nn, h_rr, h_svr])
+    map(rebin, [h_truth, h_met, h_gp, h_nn, h_rr, h_svr, h_rf])
 
     if h_truth:
         h_truth.SetLineColor(ROOT.kBlack)
@@ -135,7 +142,8 @@ def make_plot(files, ptype="pt", pdir="plots"):
     h_gp.SetLineColor(ROOT.kRed)
     h_nn.SetLineColor(ROOT.kMagenta+3)
     h_rr.SetLineColor(ROOT.kGreen+1)
-    h_svr.SetLineColor(ROOT.kBlue)
+    h_svr.SetLineColor(ROOT.kCyan+1)
+    h_rf.SetLineColor(ROOT.kBlue)
 
     h_gp.SetMarkerStyle(ROOT.kFullCircle)
     h_gp.SetMarkerColor(ROOT.kRed)
@@ -147,9 +155,13 @@ def make_plot(files, ptype="pt", pdir="plots"):
     h_rr.SetMarkerColor(ROOT.kGreen+1)
 
     h_svr.SetMarkerStyle(ROOT.kFullTriangleUp)
-    h_svr.SetMarkerColor(ROOT.kBlue)
+    h_svr.SetMarkerColor(ROOT.kCyan+1)
+
+    h_rf.SetMarkerStyle(ROOT.kFullDiamond)
+    h_rf.SetMarkerColor(ROOT.kBlue)
 
     leg = ROOT.TLegend(.65, .65, .85, .85)
+    leg.SetFillStyle(0)
     if h_truth:
         leg.AddEntry(h_truth, "Target", "l")
     leg.AddEntry(h_met, "MET", "l")
@@ -157,8 +169,12 @@ def make_plot(files, ptype="pt", pdir="plots"):
     leg.AddEntry(h_nn, "NN", "lep")
     leg.AddEntry(h_rr, "BRR", "lep")
     leg.AddEntry(h_svr, "SVR", "lep")
+    leg.AddEntry(h_rf, "RF", "lep")
 
-    hmax = get_hmax(h_truth, h_met, h_gp, h_nn, h_rr, h_svr)
+    lex = ROOT.TLatex()
+    lex.SetNDC()
+
+    hmax = get_hmax(h_truth, h_met, h_gp, h_nn, h_rr, h_svr, h_rf)
     if h_truth:
         first = h_truth
     else:
@@ -179,6 +195,8 @@ def make_plot(files, ptype="pt", pdir="plots"):
     h_nn.Draw("same")
     h_rr.Draw("same")
     h_svr.Draw("same")
+    h_rf.Draw("same")
+
     if ptype == "profile":
         line = ROOT.TLine(0, 1, 500, 1)
         line.SetLineWidth(2)
@@ -186,14 +204,19 @@ def make_plot(files, ptype="pt", pdir="plots"):
         line.SetLineStyle(ROOT.kDashed)
         line.Draw("same")
     leg.Draw()
+    if postfix == "_comb":
+        lex.DrawLatex(0.65, 0.86, "All")
+    else:
+        mass = postfix.replace("_", "")
+        lex.DrawLatex(0.65, 0.86, "H+ " + mass + " GeV")
 
     mkdir(pdir)
-    c.Print(pdir + "/" + ptype + ".png")
-    c.Print(pdir + "/" + ptype + ".pdf")
+    c.Print(pdir + "/" + ptype + postfix + ".png")
+    c.Print(pdir + "/" + ptype + postfix + ".pdf")
 
 
 def main(argv):
-    files = {
+    files_all = {
             "independents":"independents.root",
             "gp":"gp_regression.root",
             "nn":"../Mikael_project/25-10.sig-sig.min_max.pt(mc nuH).200000p.500e.all.root",
@@ -203,6 +226,41 @@ def main(argv):
             "svr":"/home/max/Dropbox/sml/project/sml-project/Henrik_Project/svr_rbf_C100.0_g0.09_e0.05_d3_i1000.root",
             }
 
+    files_200 = {
+            "independents":"independents_200.root",
+            "gp":"gp_regression_200.root",
+            "nn":"../Mikael_project/neural_net_separate_200GeV.root",
+            "rr":"/home/max/Dropbox/sml/project/sml-project/Camila_Project/Root/results/200GeV_Bayes.root",
+            "svr":"/home/max/Dropbox/sml/project/sml-project/Henrik_Project/svr_rbf_s200_C100.0_g0.09_e0.05_d3_i1000.root",
+            "rf":"/home/max/Dropbox/sml/project/sml-project/Henrik_Project/random_forest_s200_d100_d15.root"
+            }
+
+    files_300 = {
+            "independents":"independents_300.root",
+            "gp":"gp_regression_300.root",
+            "nn":"../Mikael_project/neural_net_separate_300GeV.root",
+            "rr":"/home/max/Dropbox/sml/project/sml-project/Camila_Project/Root/results/300GeV_Bayes.root",
+            "svr":"/home/max/Dropbox/sml/project/sml-project/Henrik_Project/svr_rbf_s300_C100.0_g0.09_e0.05_d3_i1000.root",
+            "rf":"/home/max/Dropbox/sml/project/sml-project/Henrik_Project/random_forest_s300_d100_d15.root"
+            }
+
+    files_400 = {
+            "independents":"independents_400.root",
+            "gp":"gp_regression_400.root",
+            "nn":"../Mikael_project/neural_net_separate_400GeV.root",
+            "rr":"/home/max/Dropbox/sml/project/sml-project/Camila_Project/Root/results/400GeV_Bayes.root",
+            "svr":"/home/max/Dropbox/sml/project/sml-project/Henrik_Project/svr_rbf_s400_C100.0_g0.09_e0.05_d3_i1000.root",
+            "rf":"/home/max/Dropbox/sml/project/sml-project/Henrik_Project/random_forest_s400_d100_d15.root"
+            }
+
+    files = {"comb":files_all, "200":files_200, "300":files_300, "400":files_400}
+
+    try:
+        file_set = argv[1]
+    except KeyError:
+        file_set = "all"
+
+    print("--- Using '{}'".format(file_set))
     plot_types = [
             "pt",
             "resolution",
@@ -212,7 +270,11 @@ def main(argv):
 
     set_style()
     for ptype in plot_types:
-        make_plot(files=files, ptype=ptype)
+        if file_set == "all":
+            for fs in ["200", "300", "400"]:
+                make_plot(files=files[fs], ptype=ptype, postfix="_"+fs)
+        else:
+            make_plot(files=files[file_set], ptype=ptype, postfix="_"+file_set)
 
 
 if __name__ == "__main__":
